@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  password  String
+  plan      String   @default("BASIC") // BASIC | PRO
+  createdAt DateTime @default(now())
+  farms     Farm[]
+}
+
+model Farm {
+  id           String   @id @default(cuid())
+  name         String
+  latitude     Float
+  longitude    Float
+  radiusMeters Int      @default(500)
+  hectares     Float?
+  ownerId      String
+  owner        User     @relation(fields: [ownerId], references: [id])
+  animals      Animal[]
+  createdAt    DateTime @default(now())
+}
+
+model Animal {
+  id         String    @id @default(cuid())
+  name       String
+  tagId      String    @unique
+  type       String    // COW | SHEEP | GOAT | CHICKEN | HORSE | PIG
+  farmId     String
+  farm       Farm      @relation(fields: [farmId], references: [id])
+  latitude   Float?
+  longitude  Float?
+  battery    Int       @default(100)
+  status     String    @default("SAFE") // SAFE | WARNING | ALERT
+  lastSeenAt DateTime?
+  createdAt  DateTime  @default(now())
+  alerts     Alert[]
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  animalId  String
+  animal    Animal   @relation(fields: [animalId], references: [id])
+  type      String   // BOUNDARY_EXIT | LOW_BATTERY | INACTIVITY
+  message   String
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

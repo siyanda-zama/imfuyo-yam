@@ -1,0 +1,529 @@
+"use client";
+
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
+import BottomSheet from "@/components/ui/BottomSheet";
+
+const FarmMap = dynamic(() => import("@/components/map/FarmMap"), {
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-surface" />,
+});
+import AnimalCard, { type Animal } from "@/components/ui/AnimalCard";
+import TheftReportModal from "@/components/ui/TheftReportModal";
+import FarmSwitcher from "@/components/ui/FarmSwitcher";
+import { isOutsideBoundary } from "@/lib/geo";
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+interface Farm {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+  hectares: number | null;
+  _count?: { animals: number };
+}
+
+type AnimalType = "COW" | "SHEEP" | "GOAT" | "CHICKEN" | "HORSE" | "PIG";
+type FilterOption = "ALL" | AnimalType | "ALERTS";
+
+const ANIMAL_EMOJI: Record<AnimalType, string> = {
+  COW: "\uD83D\uDC04",
+  SHEEP: "\uD83D\uDC11",
+  GOAT: "\uD83D\uDC10",
+  CHICKEN: "\uD83D\uDC14",
+  HORSE: "\uD83D\uDC34",
+  PIG: "\uD83D\uDC37",
+};
+
+const FILTER_OPTIONS: { key: FilterOption; label: string }[] = [
+  { key: "ALL", label: "All" },
+  { key: "COW", label: "Cows" },
+  { key: "SHEEP", label: "Sheep" },
+  { key: "GOAT", label: "Goats" },
+  { key: "ALERTS", label: "Alerts" },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
+
+export default function MapDashboard() {
+  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const [farm, setFarm] = useState<Farm | null>(null);
+  const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(null);
+  const [snapIndex, setSnapIndex] = useState<0 | 1 | 2>(0);
+  const [isLive, setIsLive] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<FilterOption>("ALL");
+  const [theftModalOpen, setTheftModalOpen] = useState(false);
+  const [showFarmSwitcher, setShowFarmSwitcher] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("");
+  const [alertBanner, setAlertBanner] = useState<string | null>(null);
+
+  /* ---------- Fetch farms + animals on mount ---------- */
+  useEffect(() => {
+    async function load() {
+      try {
+        const farmRes = await fetch("/api/farms");
+        const farmsData: Farm[] = await farmRes.json();
+        setFarms(farmsData);
+
+        // Determine active farm from cookie or use first
+        const cookies = document.cookie.split(";").map((c) => c.trim());
+        const stored = cookies.find((c) => c.startsWith("activeFarmId="));
+        const storedId = stored?.split("=")[1];
+        const activeFarm =
+          farmsData.find((f) => f.id === storedId) ?? farmsData[0] ?? null;
+        setFarm(activeFarm);
+
+        // Fetch animals for active farm
+        const url = activeFarm
+          ? `/api/animals?farmId=${activeFarm.id}`
+          : "/api/animals";
+        const animalRes = await fetch(url);
+        const animalData: Animal[] = await animalRes.json();
+        setAnimals(animalData);
+      } catch (err) {
+        console.error("Failed to load data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  /* ---------- Switch farm handler ---------- */
+  const switchFarm = useCallback(
+    async (farmId: string) => {
+      document.cookie = `activeFarmId=${farmId};path=/;max-age=31536000`;
+      const newFarm = farms.find((f) => f.id === farmId) ?? null;
+      setShowFarmSwitcher(false);
+      setSelectedAnimalId(null);
+      alertedRef.current.clear();
+
+      // Fetch animals first, then update farm + animals together
+      try {
+        const res = await fetch(`/api/animals?farmId=${farmId}`);
+        const newAnimals = await res.json();
+        setFarm(newFarm);
+        setAnimals(newAnimals);
+      } catch (err) {
+        console.error(err);
+        setFarm(newFarm);
+        setAnimals([]);
+      }
+    },
+    [farms]
+  );
+
+  /* ---------- Get user initial from session ---------- */
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        const res = await fetch("/api/auth/session");
+        const session = await res.json();
+        if (session?.user?.name) {
+          setUserName(session.user.name);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadSession();
+  }, []);
+
+  /* ---------- Track which animals already triggered alerts ---------- */
+  const alertedRef = useRef<Set<string>>(new Set());
+  const farmRef = useRef(farm);
+  farmRef.current = farm;
+
+  /* ---------- Simulated GPS movement ---------- */
+  useEffect(() => {
+    // Request notification permission on mount
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    const interval = setInterval(() => {
+      const currentFarm = farmRef.current;
+      if (!currentFarm) return;
+
+      const pendingAlerts: { name: string; tagId: string; id: string }[] = [];
+
+      setAnimals((prev) => {
+        if (prev.length === 0) return prev;
+
+        return prev.map((animal) => {
+          if (animal.latitude == null || animal.longitude == null) return animal;
+
+          // Each animal has a slight bias direction (deterministic from id)
+          const seed = animal.id.charCodeAt(0) + animal.id.charCodeAt(animal.id.length - 1);
+          const biasAngle = (seed % 360) * (Math.PI / 180);
+
+          // Normal grazing movement + slight directional bias
+          const drift = 0.00015;
+          const bias = 0.00003;
+          const newLat =
+            animal.latitude +
+            (Math.random() - 0.5) * drift +
+            Math.cos(biasAngle) * bias;
+          const newLng =
+            animal.longitude +
+            (Math.random() - 0.5) * drift +
+            Math.sin(biasAngle) * bias;
+
+          const outside = isOutsideBoundary(
+            newLat,
+            newLng,
+            currentFarm.latitude,
+            currentFarm.longitude,
+            currentFarm.radiusMeters
+          );
+
+          const wasInside = animal.status !== "ALERT";
+          const newStatus = outside ? "ALERT" : "SAFE";
+
+          // Track boundary exit for notifications (collected, dispatched outside setState)
+          if (outside && wasInside && !alertedRef.current.has(animal.id)) {
+            alertedRef.current.add(animal.id);
+            pendingAlerts.push({ name: animal.name, tagId: animal.tagId, id: animal.id });
+          }
+
+          // Clear alert tracking when animal comes back inside
+          if (!outside && alertedRef.current.has(animal.id)) {
+            alertedRef.current.delete(animal.id);
+          }
+
+          return {
+            ...animal,
+            latitude: newLat,
+            longitude: newLng,
+            status: newStatus,
+            lastSeenAt: new Date().toISOString(),
+          };
+        });
+      });
+
+      // Fire notifications outside of setState
+      if (pendingAlerts.length > 0) {
+        setIsLive(true);
+        const alert = pendingAlerts[0];
+
+        // In-app alert banner
+        setAlertBanner(`⚠️ ${alert.name} has left the farm boundary!`);
+        setTimeout(() => setAlertBanner(null), 6000);
+
+        // Create alerts in database
+        for (const a of pendingAlerts) {
+          fetch("/api/alerts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              animalId: a.id,
+              type: "BOUNDARY_EXIT",
+              message: `${a.name} has left the farm boundary!`,
+            }),
+          }).catch(() => {});
+        }
+
+        // Browser notification
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          new Notification(`⚠️ ${alert.name} left the boundary!`, {
+            body: `${alert.name} (${alert.tagId}) has moved outside ${farmRef.current?.name}`,
+            icon: "/imfuyo-logo.png",
+          });
+        }
+      }
+
+      setIsLive(true);
+    }, 5000);
+
+    setIsLive(true);
+
+    return () => clearInterval(interval);
+  }, []); // Run once on mount, uses refs for current data
+
+  /* ---------- Derived data ---------- */
+  const alertCount = useMemo(
+    () => animals.filter((a) => a.status === "ALERT").length,
+    [animals]
+  );
+
+  const typeCounts = useMemo(() => {
+    const counts: Partial<Record<AnimalType, number>> = {};
+    animals.forEach((a) => {
+      counts[a.type] = (counts[a.type] || 0) + 1;
+    });
+    return counts;
+  }, [animals]);
+
+  const filteredAnimals = useMemo(() => {
+    if (activeFilter === "ALL") return animals;
+    if (activeFilter === "ALERTS")
+      return animals.filter((a) => a.status === "ALERT");
+    return animals.filter((a) => a.type === activeFilter);
+  }, [animals, activeFilter]);
+
+  const selectedAnimal = useMemo(
+    () => animals.find((a) => a.id === selectedAnimalId) ?? null,
+    [animals, selectedAnimalId]
+  );
+
+  /* ---------- Handlers ---------- */
+  const handleSelectAnimal = useCallback((id: string | null) => {
+    setSelectedAnimalId(id);
+  }, []);
+
+  const handleAnimalCardSelect = useCallback((animal: Animal) => {
+    setSelectedAnimalId(animal.id);
+    setSnapIndex(0);
+  }, []);
+
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : "U";
+
+  /* ---------- Loading state ---------- */
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted text-sm">Loading your farm...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 max-w-[430px] mx-auto">
+      {/* ---- Layer 1: Full-screen map (z-0) ---- */}
+      <div className="absolute inset-0 z-0">
+        <FarmMap
+          farm={farm}
+          animals={animals}
+          selectedAnimalId={selectedAnimalId}
+          onSelectAnimal={handleSelectAnimal}
+        />
+      </div>
+
+      {/* ---- Layer 2: Top bar (z-10) ---- */}
+      <div className="absolute top-0 left-0 right-0 z-10">
+        <div className="rounded-2xl bg-white/90 backdrop-blur shadow-sm mx-4 mt-[env(safe-area-inset-top,12px)] p-3 flex justify-between items-center">
+          {/* Hamburger — opens farm switcher */}
+          <button
+            type="button"
+            className="w-8 h-8 flex items-center justify-center"
+            onClick={() => setShowFarmSwitcher(true)}
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M3 5h14" />
+              <path d="M3 10h14" />
+              <path d="M3 15h14" />
+            </svg>
+          </button>
+
+          {/* Title */}
+          <span className="font-heading text-primary text-lg">Imfuyo Yam</span>
+
+          {/* Avatar */}
+          <div className="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center">
+            <span className="text-primary-dark text-sm font-semibold">
+              {userInitial}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ---- Layer 3: LIVE indicator (z-10) ---- */}
+      {isLive && (
+        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-white/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-xs font-semibold text-green-700">LIVE</span>
+        </div>
+      )}
+
+      {/* ---- Alert banner (z-15) ---- */}
+      {alertBanner && (
+        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+64px)] left-4 right-4 z-[15] animate-in slide-in-from-top-2">
+          <div className="bg-red-600 text-white rounded-xl px-4 py-3 shadow-lg flex items-center gap-2">
+            <span className="text-lg">🚨</span>
+            <span className="text-sm font-semibold flex-1">{alertBanner}</span>
+            <button
+              type="button"
+              onClick={() => setAlertBanner(null)}
+              className="text-white/80 hover:text-white"
+            >
+              <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M1 1l12 12M13 1L1 13" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Layer 4: Bottom Sheet (z-20) ---- */}
+      <div className="z-20">
+        <BottomSheet snapIndex={snapIndex} onSnapChange={setSnapIndex}>
+          {/* Sheet header */}
+          <div className="mb-3">
+            <h2 className="font-heading text-lg font-bold">
+              {farm?.name ?? "My Farm"}{" "}
+              <span className="font-body text-sm text-muted font-normal">
+                &middot; {animals.length} animals
+              </span>
+            </h2>
+
+            {/* Quick stat chips */}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {(Object.entries(typeCounts) as [AnimalType, number][]).map(
+                ([type, count]) => (
+                  <span
+                    key={type}
+                    className="bg-surface rounded-full px-2.5 py-1 text-xs font-medium text-gray-700"
+                  >
+                    {ANIMAL_EMOJI[type]} {count}
+                  </span>
+                )
+              )}
+              {alertCount > 0 && (
+                <span className="bg-alert-red/10 rounded-full px-2.5 py-1 text-xs font-medium text-alert-red">
+                  {"\u26A0\uFE0F"} {alertCount}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Filter pills */}
+          <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
+            {FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setActiveFilter(opt.key)}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                  activeFilter === opt.key
+                    ? "bg-primary text-white"
+                    : "bg-surface text-gray-700"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Animal list */}
+          <div className="flex flex-col gap-2 pb-24">
+            {filteredAnimals.length === 0 ? (
+              <p className="text-center text-muted py-8 text-sm">
+                No animals found
+              </p>
+            ) : (
+              filteredAnimals.map((animal) => (
+                <AnimalCard
+                  key={animal.id}
+                  animal={animal}
+                  onSelect={handleAnimalCardSelect}
+                />
+              ))
+            )}
+          </div>
+        </BottomSheet>
+      </div>
+
+      {/* ---- Layer 5: Selected animal floating card (z-25) ---- */}
+      {selectedAnimal && (
+        <div className="absolute bottom-[160px] left-4 right-4 z-[25] animate-in slide-in-from-bottom-4">
+          <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setSelectedAnimalId(null)}
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-surface flex items-center justify-center"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M1 1l12 12M13 1L1 13" />
+              </svg>
+            </button>
+
+            <div className="flex items-center gap-3">
+              {/* Emoji avatar */}
+              <div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center text-2xl shrink-0">
+                {ANIMAL_EMOJI[selectedAnimal.type]}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-base">{selectedAnimal.name}</p>
+                <p className="text-sm text-muted">{selectedAnimal.tagId}</p>
+              </div>
+
+              {/* Status badge */}
+              <div className="flex flex-col items-end gap-1">
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    selectedAnimal.status === "SAFE"
+                      ? "bg-primary-light/20 text-primary-dark"
+                      : selectedAnimal.status === "WARNING"
+                      ? "bg-alert-orange/20 text-alert-orange"
+                      : "bg-alert-red/20 text-alert-red"
+                  }`}
+                >
+                  {selectedAnimal.status}
+                </span>
+                <span className="text-xs text-muted">
+                  {selectedAnimal.battery}%
+                </span>
+              </div>
+            </div>
+
+            {/* Last seen */}
+            {selectedAnimal.lastSeenAt && (
+              <p className="text-xs text-muted mt-2">
+                Last seen:{" "}
+                {new Date(selectedAnimal.lastSeenAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            )}
+
+            {/* Report Theft button */}
+            {selectedAnimal.status === "ALERT" && (
+              <button
+                type="button"
+                onClick={() => setTheftModalOpen(true)}
+                className="mt-3 w-full bg-alert-red text-white font-semibold py-2.5 rounded-xl active:scale-[0.98] transition-transform"
+              >
+                Report Theft
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ---- Layer 6: Theft Report Modal (z-50) ---- */}
+      {selectedAnimal && (
+        <TheftReportModal
+          animal={selectedAnimal}
+          isOpen={theftModalOpen}
+          onClose={() => setTheftModalOpen(false)}
+        />
+      )}
+
+      {/* ---- Layer 7: Farm Switcher (z-50) ---- */}
+      {showFarmSwitcher && farm && (
+        <div className="absolute inset-0 z-50">
+          <FarmSwitcher
+            farms={farms}
+            activeFarmId={farm.id}
+            onSelectFarm={switchFarm}
+            onClose={() => setShowFarmSwitcher(false)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
