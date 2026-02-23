@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const userId = (session.user as any).id;
+  console.log('[POST /api/farms] userId from session:', userId);
 
   const body = await request.json();
   const { name, latitude, longitude, radiusMeters, hectares } = body;
@@ -34,6 +35,15 @@ export async function POST(request: NextRequest) {
   if (!name || latitude === undefined || longitude === undefined) {
     return NextResponse.json(
       { error: 'Missing required fields: name, latitude, longitude' },
+      { status: 400 }
+    );
+  }
+
+  // Verify the user exists in the database
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    return NextResponse.json(
+      { error: `User not found in database. Session user ID: ${userId}` },
       { status: 400 }
     );
   }

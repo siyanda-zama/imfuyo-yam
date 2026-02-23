@@ -102,7 +102,7 @@ export default function BottomSheet({
   return (
     <div
       ref={sheetRef}
-      className="absolute left-0 right-0 w-full bg-navy-light rounded-t-2xl shadow-2xl z-30 border-t border-cyan/15"
+      className="absolute left-0 right-0 w-full bg-surface rounded-t-2xl shadow-2xl z-30 border-t border-primary/15"
       style={{
         bottom: `${BOTTOM_NAV_HEIGHT}px`,
         height: `${maxHeight}px`,
@@ -115,7 +115,7 @@ export default function BottomSheet({
     >
       {/* Drag handle */}
       <div className="pt-3 pb-1 cursor-grab active:cursor-grabbing">
-        <div className="w-10 h-1 rounded-full bg-slate-dark mx-auto mb-2" />
+        <div className="w-10 h-1 rounded-full bg-border mx-auto mb-2" />
       </div>
 
       {/* Content */}

@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useOnlineStatus } from "@/lib/useOnlineStatus";
+import { motion } from "framer-motion";
+import PageTransition from "@/components/ui/PageTransition";
+import SkeletonCard from "@/components/ui/SkeletonCard";
+import { ALERT_ICONS, ALERT_LABELS } from "@/lib/icons";
+import { ShieldAlert, BatteryLow, Moon, ShieldCheck, type LucideIcon } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -53,22 +58,34 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
+function getDateGroup(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffDays = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return "This Week";
+  return "Earlier";
+}
+
 const ALERT_CONFIG: Record<
   AlertType,
-  { icon: string; borderColor: string; label: string }
+  { icon: LucideIcon; borderColor: string; label: string }
 > = {
   BOUNDARY_EXIT: {
-    icon: "\uD83D\uDEA8",
-    borderColor: "border-l-alert-red",
+    icon: ShieldAlert,
+    borderColor: "border-l-danger",
     label: "Boundary Exit",
   },
   LOW_BATTERY: {
-    icon: "\uD83D\uDD0B",
-    borderColor: "border-l-alert-orange",
+    icon: BatteryLow,
+    borderColor: "border-l-warning",
     label: "Low Battery",
   },
   INACTIVITY: {
-    icon: "\uD83D\uDCA4",
+    icon: Moon,
     borderColor: "border-l-yellow-400",
     label: "Inactivity",
   },
@@ -131,14 +148,34 @@ export default function AlertsPage() {
     }
   };
 
+  /* ---------- Group alerts by date ---------- */
+  const groupedAlerts = useMemo(() => {
+    const groups: { label: string; alerts: Alert[] }[] = [];
+    const groupMap = new Map<string, Alert[]>();
+    const order: string[] = [];
+
+    for (const alert of alerts) {
+      const group = getDateGroup(alert.createdAt);
+      if (!groupMap.has(group)) {
+        groupMap.set(group, []);
+        order.push(group);
+      }
+      groupMap.get(group)!.push(alert);
+    }
+
+    for (const label of order) {
+      groups.push({ label, alerts: groupMap.get(label)! });
+    }
+
+    return groups;
+  }, [alerts]);
+
   /* ---------- Loading ---------- */
   if (loading) {
     return (
       <div className="p-4 pt-6 space-y-3">
-        <div className="h-8 w-24 bg-surface-card rounded-lg animate-pulse" />
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-20 w-full bg-surface-card rounded-xl animate-pulse" />
-        ))}
+        <div className="h-8 w-24 bg-surface rounded-lg animate-pulse" />
+        <SkeletonCard count={4} />
       </div>
     );
   }
@@ -147,113 +184,135 @@ export default function AlertsPage() {
   const unresolvedCount = alerts.filter((a) => !a.resolved).length;
 
   return (
-    <div className="p-4 pt-6 pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="font-heading text-2xl font-bold">Alerts</h1>
-        {unresolvedCount > 0 && (
-          <span className="bg-alert-red/10 text-alert-red text-xs font-semibold rounded-full px-3 py-1">
-            {unresolvedCount} active
-          </span>
-        )}
-      </div>
-
-      {/* Error state */}
-      {error && (
-        <div className="bg-alert-red/10 text-alert-red rounded-xl p-4 mb-4 text-sm">
-          {error}
+    <PageTransition>
+      <div className="p-4 pt-6 pb-24">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="text-2xl font-bold text-white">Alerts</h1>
+          {unresolvedCount > 0 && (
+            <span className="bg-danger/10 text-danger text-xs font-semibold rounded-full px-3 py-1">
+              {unresolvedCount} active
+            </span>
+          )}
         </div>
-      )}
 
-      {/* Empty state */}
-      {alerts.length === 0 && !error && (
-        <div className="text-center py-20">
-          <div className="w-16 h-16 bg-cyan/15 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-cyan"
-            >
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
+        {/* Error state */}
+        {error && (
+          <div className="bg-danger/10 text-danger rounded-xl p-4 mb-4 text-sm">
+            {error}
           </div>
-          <p className="text-lg font-semibold mb-1">All animals are safe {"\uD83D\uDC04"}</p>
-          <p className="text-muted text-sm">No alerts at the moment</p>
-        </div>
-      )}
+        )}
 
-      {/* Alert timeline */}
-      <div className="flex flex-col gap-3">
-        {alerts.map((alert) => {
-          const config = ALERT_CONFIG[alert.type];
-          const isToggling = togglingId === alert.id;
+        {/* Empty state */}
+        {alerts.length === 0 && !error && (
+          <motion.div
+            className="text-center py-20"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck size={40} className="text-primary" />
+            </div>
+            <p className="text-lg font-semibold mb-1 text-white">All Clear</p>
+            <p className="text-text-muted text-sm">
+              No alerts at the moment
+            </p>
+          </motion.div>
+        )}
 
-          return (
-            <div
-              key={alert.id}
-              className={`bg-navy-light rounded-xl border-l-4 ${config.borderColor} p-4 border border-slate-dark/30 transition-opacity ${
-                alert.resolved ? "opacity-50" : ""
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                {/* Icon */}
-                <div className="text-xl mt-0.5 shrink-0">{config.icon}</div>
+        {/* Alert timeline grouped by date */}
+        <div className="flex flex-col gap-3">
+          {groupedAlerts.map((group) => (
+            <div key={group.label}>
+              {/* Date group header */}
+              <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2 mt-2">
+                {group.label}
+              </p>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  {/* Type label */}
-                  <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-0.5">
-                    {config.label}
-                  </p>
+              <div className="flex flex-col gap-3">
+                {group.alerts.map((alert) => {
+                  const config = ALERT_CONFIG[alert.type];
+                  const isToggling = togglingId === alert.id;
+                  const IconComponent = config.icon;
 
-                  {/* Message */}
-                  <p
-                    className={`text-sm font-medium ${
-                      alert.resolved ? "line-through text-muted" : "text-white"
-                    }`}
-                  >
-                    {alert.message}
-                  </p>
+                  return (
+                    <div
+                      key={alert.id}
+                      className={`bg-surface rounded-xl border-l-4 ${config.borderColor} p-4 border border-border/30 transition-opacity ${
+                        alert.resolved ? "opacity-50" : ""
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Icon */}
+                        <div className="mt-0.5 shrink-0 text-muted">
+                          <IconComponent size={20} />
+                        </div>
 
-                  {/* Animal name + time */}
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-muted">
-                      {alert.animal.name}
-                    </span>
-                    <span className="text-xs text-muted">&middot;</span>
-                    <span className="text-xs text-muted">
-                      {timeAgo(alert.createdAt)}
-                    </span>
-                  </div>
-                </div>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          {/* Type label */}
+                          <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-0.5">
+                            {config.label}
+                          </p>
 
-                {/* Resolve toggle */}
-                <button
-                  type="button"
-                  onClick={() => isOnline && toggleResolved(alert)}
-                  disabled={isToggling || !isOnline}
-                  className={`shrink-0 w-11 h-6 rounded-full transition-colors relative ${
-                    alert.resolved ? "bg-cyan" : "bg-slate-dark"
-                  } ${isToggling ? "opacity-50" : ""}`}
-                  title={alert.resolved ? "Mark unresolved" : "Mark resolved"}
-                >
-                  <div
-                    className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
-                      alert.resolved ? "translate-x-[22px]" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
+                          {/* Message */}
+                          <p
+                            className={`text-sm font-medium ${
+                              alert.resolved
+                                ? "line-through text-muted"
+                                : "text-white"
+                            }`}
+                          >
+                            {alert.message}
+                          </p>
+
+                          {/* Animal name + time */}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-muted">
+                              {alert.animal.name}
+                            </span>
+                            <span className="text-xs text-muted">
+                              &middot;
+                            </span>
+                            <span className="text-xs text-muted">
+                              {timeAgo(alert.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Resolve toggle */}
+                        <motion.button
+                          type="button"
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => isOnline && toggleResolved(alert)}
+                          disabled={isToggling || !isOnline}
+                          className={`shrink-0 w-11 h-6 rounded-full transition-colors relative ${
+                            alert.resolved ? "bg-primary" : "bg-border"
+                          } ${isToggling ? "opacity-50" : ""}`}
+                          title={
+                            alert.resolved
+                              ? "Mark unresolved"
+                              : "Mark resolved"
+                          }
+                        >
+                          <div
+                            className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
+                              alert.resolved
+                                ? "translate-x-[22px]"
+                                : "translate-x-0.5"
+                            }`}
+                          />
+                        </motion.button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

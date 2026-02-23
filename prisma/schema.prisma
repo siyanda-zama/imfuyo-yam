@@ -16,6 +16,7 @@ model User {
   plan      String   @default("BASIC") // BASIC | PRO
   createdAt DateTime @default(now())
   farms     Farm[]
+  settings  UserSettings?
 }
 
 model Farm {
@@ -55,4 +56,18 @@ model Alert {
   message   String
   resolved  Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model UserSettings {
+  id                    String  @id @default(cuid())
+  userId                String  @unique
+  user                  User    @relation(fields: [userId], references: [id])
+  pushNotifications     Boolean @default(true)
+  alertSounds           Boolean @default(true)
+  boundaryAlerts        Boolean @default(true)
+  batteryAlerts         Boolean @default(true)
+  inactivityAlerts      Boolean @default(true)
+  mapStyle              String  @default("satellite") // satellite | streets | dark
+  distanceUnit          String  @default("km") // km | miles
+  language              String  @default("en") // en | zu | xh | af
 }

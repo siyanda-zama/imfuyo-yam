@@ -9,45 +9,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // HerdGuard dark theme palette
-        navy: {
-          DEFAULT: '#0F2027',
-          light: '#1B3A4B',
-          mid: '#153040',
-        },
-        cyan: {
-          DEFAULT: '#00E5CC',
-          dark: '#00B8A3',
-          light: '#33FFE8',
-          glow: 'rgba(0, 229, 204, 0.15)',
-        },
-        lime: {
-          DEFAULT: '#7BF542',
-          dark: '#5BC72E',
-          light: '#A3FF6E',
-          glow: 'rgba(123, 245, 66, 0.15)',
-        },
-        slate: {
-          DEFAULT: '#4A6272',
-          light: '#8BA3B5',
-          dark: '#2D3E4A',
-        },
-        surface: {
-          DEFAULT: '#122A35',
-          card: '#1B3A4B',
-          elevated: '#1F4050',
-        },
-        muted: '#8BA3B5',
-        'alert-red': '#FF4757',
-        'alert-orange': '#FFA502',
-        // Legacy aliases for components
-        primary: '#00E5CC',
-        'primary-dark': '#00B8A3',
-        'primary-light': '#33FFE8',
+        primary: { DEFAULT: '#00C896', dark: '#00A87E', light: '#33D4AB' },
+        background: '#0A1628',
+        surface: { DEFAULT: '#0F1F35', light: '#162D4A' },
+        border: '#1E3A5F',
+        'text-primary': '#FFFFFF',
+        'text-secondary': '#8899AA',
+        'text-muted': '#556677',
+        success: '#00C896',
+        warning: '#FFB020',
+        danger: '#FF4757',
+        info: '#3B82F6',
       },
       fontFamily: {
-        heading: ['var(--font-dm-serif)', 'serif'],
-        body: ['var(--font-dm-sans)', 'sans-serif'],
+        sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
+      },
+      borderRadius: {
+        sm: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '24px',
       },
       maxWidth: {
         app: '430px',

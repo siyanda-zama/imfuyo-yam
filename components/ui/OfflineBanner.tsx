@@ -8,7 +8,7 @@ export default function OfflineBanner() {
   if (isOnline) return null;
 
   return (
-    <div className="bg-alert-orange text-navy text-center py-1.5 px-3 text-xs font-semibold sticky top-0 z-[100] flex items-center justify-center gap-1.5">
+    <div className="bg-warning text-background text-center py-1.5 px-3 text-xs font-semibold sticky top-0 z-[100] flex items-center justify-center gap-1.5">
       <svg
         width="14"
         height="14"

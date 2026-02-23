@@ -6,13 +6,16 @@ import BottomSheet from "@/components/ui/BottomSheet";
 
 const FarmMap = dynamic(() => import("@/components/map/FarmMap"), {
   ssr: false,
-  loading: () => <div className="w-full h-full bg-navy" />,
+  loading: () => <div className="w-full h-full bg-background" />,
 });
 import AnimalCard, { type Animal } from "@/components/ui/AnimalCard";
 import TheftReportModal from "@/components/ui/TheftReportModal";
 import FarmSwitcher from "@/components/ui/FarmSwitcher";
 import { isOutsideBoundary } from "@/lib/geo";
 import { useOnlineStatus } from "@/lib/useOnlineStatus";
+import { ANIMAL_ICONS, ANIMAL_LABELS } from "@/lib/icons";
+import { createElement } from "react";
+import { AlertTriangle, Menu, X, Locate, Layers } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -31,14 +34,6 @@ interface Farm {
 type AnimalType = "COW" | "SHEEP" | "GOAT" | "CHICKEN" | "HORSE" | "PIG";
 type FilterOption = "ALL" | AnimalType | "ALERTS";
 
-const ANIMAL_EMOJI: Record<AnimalType, string> = {
-  COW: "\uD83D\uDC04",
-  SHEEP: "\uD83D\uDC11",
-  GOAT: "\uD83D\uDC10",
-  CHICKEN: "\uD83D\uDC14",
-  HORSE: "\uD83D\uDC34",
-  PIG: "\uD83D\uDC37",
-};
 
 const FILTER_OPTIONS: { key: FilterOption; label: string }[] = [
   { key: "ALL", label: "All" },
@@ -217,7 +212,7 @@ export default function MapDashboard() {
         const alert = pendingAlerts[0];
 
         // In-app alert banner
-        setAlertBanner(`⚠️ ${alert.name} has left the farm boundary!`);
+        setAlertBanner(`Alert:${alert.name} has left the farm boundary!`);
         setTimeout(() => setAlertBanner(null), 6000);
 
         // Create alerts in database
@@ -235,7 +230,7 @@ export default function MapDashboard() {
 
         // Browser notification
         if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-          new Notification(`⚠️ ${alert.name} left the boundary!`, {
+          new Notification(`Alert:${alert.name} left the boundary!`, {
             body: `${alert.name} (${alert.tagId}) has moved outside ${farmRef.current?.name}`,
             icon: "/herdguard-logo.jpeg",
           });
@@ -291,10 +286,10 @@ export default function MapDashboard() {
   /* ---------- Loading state ---------- */
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-navy">
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-cyan border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-light text-sm">Loading your farm...</p>
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-secondary text-sm">Loading your farm...</p>
         </div>
       </div>
     );
@@ -314,26 +309,22 @@ export default function MapDashboard() {
 
       {/* ---- Layer 2: Top bar (z-10) ---- */}
       <div className="absolute top-0 left-0 right-0 z-10">
-        <div className="rounded-2xl bg-navy-light/90 backdrop-blur shadow-sm mx-4 mt-[env(safe-area-inset-top,12px)] p-3 flex justify-between items-center">
+        <div className="rounded-2xl bg-surface/90 backdrop-blur shadow-sm mx-4 mt-[env(safe-area-inset-top,12px)] p-3 flex justify-between items-center">
           {/* Hamburger — opens farm switcher */}
           <button
             type="button"
             className="w-8 h-8 flex items-center justify-center"
             onClick={() => setShowFarmSwitcher(true)}
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M3 5h14" />
-              <path d="M3 10h14" />
-              <path d="M3 15h14" />
-            </svg>
+            <Menu size={20} />
           </button>
 
           {/* Title */}
-          <span className="font-heading text-cyan text-lg">HerdGuard</span>
+          <span className="font-bold text-primary text-lg">HerdGuard</span>
 
           {/* Avatar */}
-          <div className="w-8 h-8 bg-cyan/20 rounded-full flex items-center justify-center">
-            <span className="text-cyan text-sm font-semibold">
+          <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+            <span className="text-primary text-sm font-semibold">
               {userInitial}
             </span>
           </div>
@@ -342,32 +333,30 @@ export default function MapDashboard() {
 
       {/* ---- Layer 3: LIVE / OFFLINE indicator (z-10) ---- */}
       {isOnline && isLive && (
-        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-navy-light/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
-          <div className="w-2 h-2 rounded-full bg-lime animate-pulse" />
-          <span className="text-xs font-semibold text-lime">LIVE</span>
+        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-surface/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+          <span className="text-xs font-semibold text-success">LIVE</span>
         </div>
       )}
       {!isOnline && (
-        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-alert-orange/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
-          <div className="w-2 h-2 rounded-full bg-navy" />
-          <span className="text-xs font-semibold text-navy">OFFLINE</span>
+        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-warning/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-background" />
+          <span className="text-xs font-semibold text-background">OFFLINE</span>
         </div>
       )}
 
       {/* ---- Alert banner (z-15) ---- */}
       {alertBanner && (
         <div className="absolute top-[calc(env(safe-area-inset-top,12px)+64px)] left-4 right-4 z-[15] animate-in slide-in-from-top-2">
-          <div className="bg-alert-red text-white rounded-xl px-4 py-3 shadow-lg flex items-center gap-2">
-            <span className="text-lg">🚨</span>
+          <div className="bg-danger text-white rounded-xl px-4 py-3 shadow-lg flex items-center gap-2">
+            <AlertTriangle size={18} className="shrink-0" />
             <span className="text-sm font-semibold flex-1">{alertBanner}</span>
             <button
               type="button"
               onClick={() => setAlertBanner(null)}
               className="text-white/80 hover:text-white"
             >
-              <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M1 1l12 12M13 1L1 13" />
-              </svg>
+              <X size={16} />
             </button>
           </div>
         </div>
@@ -378,9 +367,9 @@ export default function MapDashboard() {
         <BottomSheet snapIndex={snapIndex} onSnapChange={setSnapIndex}>
           {/* Sheet header */}
           <div className="mb-3">
-            <h2 className="font-heading text-lg font-bold">
+            <h2 className="font-bold text-lg">
               {farm?.name ?? "My Farm"}{" "}
-              <span className="font-body text-sm text-muted font-normal">
+              <span className="font-sans text-sm text-muted font-normal">
                 &middot; {animals.length} animals
               </span>
             </h2>
@@ -391,15 +380,16 @@ export default function MapDashboard() {
                 ([type, count]) => (
                   <span
                     key={type}
-                    className="bg-surface-card rounded-full px-2.5 py-1 text-xs font-medium text-slate-light"
+                    className="bg-surface-light rounded-full px-2.5 py-1 text-xs font-medium text-secondary flex items-center gap-1"
                   >
-                    {ANIMAL_EMOJI[type]} {count}
+                    {createElement(ANIMAL_ICONS[type], { size: 12 })}
+                    {count} {ANIMAL_LABELS[type]}
                   </span>
                 )
               )}
               {alertCount > 0 && (
-                <span className="bg-alert-red/10 rounded-full px-2.5 py-1 text-xs font-medium text-alert-red">
-                  {"\u26A0\uFE0F"} {alertCount}
+                <span className="bg-danger/10 rounded-full px-2.5 py-1 text-xs font-medium text-danger flex items-center gap-1">
+                  <AlertTriangle size={12} /> {alertCount}
                 </span>
               )}
             </div>
@@ -414,8 +404,8 @@ export default function MapDashboard() {
                 onClick={() => setActiveFilter(opt.key)}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
                   activeFilter === opt.key
-                    ? "bg-cyan text-navy"
-                    : "bg-surface-card text-slate-light"
+                    ? "bg-primary text-background"
+                    : "bg-surface-light text-secondary"
                 }`}
               >
                 {opt.label}
@@ -445,22 +435,20 @@ export default function MapDashboard() {
       {/* ---- Layer 5: Selected animal floating card (z-25) ---- */}
       {selectedAnimal && (
         <div className="absolute bottom-[160px] left-4 right-4 z-[25] animate-in slide-in-from-bottom-4">
-          <div className="bg-navy-light rounded-2xl p-4 shadow-lg border border-cyan/20">
+          <div className="bg-surface rounded-2xl p-4 shadow-lg border border-primary/20">
             {/* Close button */}
             <button
               type="button"
               onClick={() => setSelectedAnimalId(null)}
-              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-surface-card flex items-center justify-center"
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-surface-light flex items-center justify-center"
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M1 1l12 12M13 1L1 13" />
-              </svg>
+              <X size={14} />
             </button>
 
             <div className="flex items-center gap-3">
-              {/* Emoji avatar */}
-              <div className="w-12 h-12 rounded-xl bg-surface-card flex items-center justify-center text-2xl shrink-0">
-                {ANIMAL_EMOJI[selectedAnimal.type]}
+              {/* Animal icon avatar */}
+              <div className="w-12 h-12 rounded-xl bg-surface-light flex items-center justify-center shrink-0">
+                {createElement(ANIMAL_ICONS[selectedAnimal.type], { size: 24, className: "text-secondary" })}
               </div>
 
               <div className="flex-1 min-w-0">
@@ -473,10 +461,10 @@ export default function MapDashboard() {
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                     selectedAnimal.status === "SAFE"
-                      ? "bg-cyan/15 text-cyan"
+                      ? "bg-primary/15 text-primary"
                       : selectedAnimal.status === "WARNING"
-                      ? "bg-alert-orange/15 text-alert-orange"
-                      : "bg-alert-red/20 text-alert-red"
+                      ? "bg-warning/15 text-warning"
+                      : "bg-danger/20 text-danger"
                   }`}
                 >
                   {selectedAnimal.status}
@@ -503,7 +491,7 @@ export default function MapDashboard() {
               <button
                 type="button"
                 onClick={() => setTheftModalOpen(true)}
-                className="mt-3 w-full bg-alert-red text-white font-semibold py-2.5 rounded-xl active:scale-[0.98] transition-transform"
+                className="mt-3 w-full bg-danger text-white font-semibold py-2.5 rounded-xl active:scale-[0.98] transition-transform"
               >
                 Report Theft
               </button>

@@ -1,20 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { DM_Sans, DM_Serif_Display } from 'next/font/google';
 import './globals.css';
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-});
-
-const dmSerif = DM_Serif_Display({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-dm-serif',
-  display: 'swap',
-});
-
 export const metadata: Metadata = {
   title: 'HerdGuard — Smart Livestock Protection',
   description: 'Smart GPS livestock tracking and protection for South African farmers.',
@@ -31,7 +16,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#0F2027',
+  themeColor: '#0A1628',
 };
 
 export default function RootLayout({
@@ -40,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmSerif.variable}`}>
+    <html lang="en">
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -49,7 +34,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body">
+      <body>
         <div className="app-shell">{children}</div>
       </body>
     </html>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Home, X, Check, Plus } from "lucide-react";
 
 interface Farm {
   id: string;
@@ -32,31 +33,18 @@ export default function FarmSwitcher({
       onClick={onClose}
     >
       <div
-        className="bg-navy-light rounded-b-2xl shadow-xl p-4 w-full relative border-b border-cyan/20"
+        className="bg-surface rounded-b-2xl shadow-xl p-4 w-full relative border-b border-primary/20"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg text-white">My Farms</h2>
+          <h2 className="font-bold text-lg text-white">My Farms</h2>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-light"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-secondary"
             aria-label="Close"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <X size={20} />
           </button>
         </div>
 
@@ -70,63 +58,33 @@ export default function FarmSwitcher({
                 onClick={() => onSelectFarm(farm.id)}
                 className={`rounded-xl p-3 flex items-center gap-3 w-full transition-colors min-h-[44px] ${
                   isActive
-                    ? "bg-cyan/10 border border-cyan"
-                    : "bg-surface-card hover:bg-surface-elevated"
+                    ? "bg-primary/10 border border-primary"
+                    : "bg-surface-light hover:bg-surface-light"
                 }`}
               >
-                {/* Home icon circle */}
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    isActive ? "bg-cyan" : "bg-slate-dark"
+                    isActive ? "bg-primary" : "bg-border"
                   }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={isActive ? "#0F2027" : "white"}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
+                  <Home size={18} className={isActive ? "text-background" : "text-white"} />
                 </div>
 
-                {/* Farm info */}
                 <div className="flex flex-col items-start flex-1 min-w-0">
                   <span className="font-semibold text-sm truncate w-full text-left text-white">
                     {farm.name}
                   </span>
-                  <span className="text-xs text-slate-light">
+                  <span className="text-xs text-secondary">
                     {farm.latitude.toFixed(4)}, {farm.longitude.toFixed(4)}
                   </span>
                 </div>
 
-                {/* Animal count badge */}
-                <span className="text-xs bg-surface-card rounded-full px-2 py-0.5 flex-shrink-0 text-slate-light">
+                <span className="text-xs bg-surface-light rounded-full px-2 py-0.5 flex-shrink-0 text-secondary">
                   {farm._count?.animals ?? 0} animals
                 </span>
 
-                {/* Active checkmark */}
                 {isActive && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#00E5CC"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="flex-shrink-0"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  <Check size={20} strokeWidth={2.5} className="flex-shrink-0 text-primary" />
                 )}
               </button>
             );
@@ -139,22 +97,9 @@ export default function FarmSwitcher({
             router.push("/setup-farm");
             onClose();
           }}
-          className="mt-3 rounded-xl border-2 border-dashed border-cyan/30 p-3 w-full flex items-center justify-center gap-2 text-cyan text-sm font-semibold min-h-[44px] transition-colors hover:bg-cyan/5"
+          className="mt-3 rounded-xl border-2 border-dashed border-primary/30 p-3 w-full flex items-center justify-center gap-2 text-primary text-sm font-semibold min-h-[44px] transition-colors hover:bg-primary/5"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          <Plus size={18} />
           Add Farm
         </button>
       </div>

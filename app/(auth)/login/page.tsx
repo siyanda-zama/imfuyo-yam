@@ -11,7 +11,7 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-navy">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Top Half — Branded Header */}
       <div className="bg-gradient-to-b from-navy to-navy-light flex flex-col items-center justify-center pt-16 pb-12">
         <Image
@@ -22,12 +22,12 @@ export default async function LoginPage() {
           className="rounded-full"
           priority
         />
-        <h1 className="font-heading text-white text-3xl mt-4">HerdGuard</h1>
-        <p className="text-cyan mt-1 text-sm">Smart Livestock Protection</p>
+        <h1 className="font-bold text-white text-3xl mt-4">HerdGuard</h1>
+        <p className="text-primary mt-1 text-sm">Smart Livestock Protection</p>
       </div>
 
       {/* Bottom Half — Auth Form */}
-      <div className="bg-navy-light rounded-t-3xl -mt-6 relative z-10 p-6 flex-1 border-t border-cyan/20">
+      <div className="bg-surface rounded-t-3xl -mt-6 relative z-10 p-6 flex-1 border-t border-primary/20">
         <AuthForm mode="login" />
       </div>
     </div>

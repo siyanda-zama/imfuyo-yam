@@ -10,7 +10,7 @@ export default async function OnboardingLayout({
   if (!session?.user) redirect("/login");
 
   return (
-    <div className="min-h-screen max-w-[430px] mx-auto bg-navy">
+    <div className="min-h-screen max-w-[430px] mx-auto bg-background">
       {children}
     </div>
   );

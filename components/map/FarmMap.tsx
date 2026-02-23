@@ -4,6 +4,8 @@ import { useMemo, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import Map, { Marker, Source, Layer } from "react-map-gl";
 import type { MapRef, LayerProps } from "react-map-gl";
 import { generateCircleCoords } from "@/lib/geo";
+import { ANIMAL_ICONS } from "@/lib/icons";
+import { createElement } from "react";
 
 const Animal3DMarker = lazy(() => import("./Animal3DMarker"));
 
@@ -47,18 +49,9 @@ const MAP_STYLE = "mapbox://styles/mapbox/dark-v11";
 const TYPES_WITH_MODELS = new Set(["COW", "SHEEP", "CHICKEN"]);
 
 const STATUS_COLORS: Record<Animal["status"], string> = {
-  SAFE: "#00E5CC",
-  WARNING: "#FFA502",
+  SAFE: "#00C896",
+  WARNING: "#FFB020",
   ALERT: "#FF4757",
-};
-
-const ANIMAL_EMOJI: Record<Animal["type"], string> = {
-  COW: "\u{1F404}",
-  SHEEP: "\u{1F411}",
-  GOAT: "\u{1F410}",
-  CHICKEN: "\u{1F414}",
-  HORSE: "\u{1F434}",
-  PIG: "\u{1F437}",
 };
 
 /* ------------------------------------------------------------------ */
@@ -69,7 +62,7 @@ const boundaryFillLayer: LayerProps = {
   id: "farm-boundary-fill",
   type: "fill",
   paint: {
-    "fill-color": "rgba(0,229,204,0.08)",
+    "fill-color": "rgba(0,200,150,0.08)",
   },
 };
 
@@ -77,7 +70,7 @@ const boundaryLineLayer: LayerProps = {
   id: "farm-boundary-line",
   type: "line",
   paint: {
-    "line-color": "#00E5CC",
+    "line-color": "#00C896",
     "line-width": 2,
     "line-dasharray": [4, 3],
   },
@@ -101,7 +94,7 @@ const bobbingCSS = `
 /*  Emoji Fallback Marker (for types without 3D model)                 */
 /* ------------------------------------------------------------------ */
 
-function EmojiMarker({
+function IconMarker({
   animal,
   isSelected,
   onClick,
@@ -111,7 +104,7 @@ function EmojiMarker({
   onClick: () => void;
 }) {
   const color = STATUS_COLORS[animal.status];
-  const emoji = ANIMAL_EMOJI[animal.type] ?? "\u{1F4CD}";
+  const Icon = ANIMAL_ICONS[animal.type];
 
   return (
     <div
@@ -124,23 +117,22 @@ function EmojiMarker({
         width: 40,
         height: 40,
         borderRadius: "50%",
-        background: `radial-gradient(circle at 35% 35%, ${color}dd, ${color})`,
+        background: "#0F1F35",
+        border: `3px solid ${color}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        fontSize: 20,
-        lineHeight: 1,
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
         transform: isSelected ? "scale(1.2)" : "scale(1)",
         boxShadow: isSelected
-          ? "0 0 0 3px white, 0 4px 12px rgba(0,0,0,0.3)"
-          : "0 2px 6px rgba(0,0,0,0.25)",
+          ? `0 0 0 3px white, 0 0 12px ${color}80, 0 4px 12px rgba(0,0,0,0.3)`
+          : `0 0 8px ${color}40, 0 2px 6px rgba(0,0,0,0.25)`,
         userSelect: "none",
       }}
       title={animal.name}
     >
-      {emoji}
+      {Icon ? createElement(Icon, { size: 18, color: "#fff", strokeWidth: 2 }) : null}
     </div>
   );
 }
@@ -253,7 +245,7 @@ export default function FarmMap({
               {has3DModel ? (
                 <Suspense
                   fallback={
-                    <EmojiMarker
+                    <IconMarker
                       animal={animal}
                       isSelected={isSelected}
                       onClick={() => handleMarkerClick(animal.id)}
@@ -267,7 +259,7 @@ export default function FarmMap({
                   />
                 </Suspense>
               ) : (
-                <EmojiMarker
+                <IconMarker
                   animal={animal}
                   isSelected={isSelected}
                   onClick={() => handleMarkerClick(animal.id)}

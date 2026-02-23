@@ -26,15 +26,15 @@ interface Animal3DMarkerProps {
 /* ------------------------------------------------------------------ */
 
 const STATUS_COLORS: Record<string, string> = {
-  SAFE: "#7FB069",
-  WARNING: "#DD6B20",
-  ALERT: "#E53E3E",
+  SAFE: "#00C896",
+  WARNING: "#FFB020",
+  ALERT: "#FF4757",
 };
 
 const STATUS_GLOW: Record<string, string> = {
-  SAFE: "rgba(127,176,105,0.5)",
-  WARNING: "rgba(221,107,32,0.6)",
-  ALERT: "rgba(229,62,62,0.7)",
+  SAFE: "rgba(0,200,150,0.5)",
+  WARNING: "rgba(255,176,32,0.6)",
+  ALERT: "rgba(255,71,87,0.7)",
 };
 
 const MODEL_PATHS: Record<string, string> = {
@@ -157,8 +157,8 @@ export default function Animal3DMarker({
   onClick,
 }: Animal3DMarkerProps) {
   const modelPath = MODEL_PATHS[animal.type];
-  const statusColor = STATUS_COLORS[animal.status] ?? "#7FB069";
-  const glowColor = STATUS_GLOW[animal.status] ?? "rgba(127,176,105,0.5)";
+  const statusColor = STATUS_COLORS[animal.status] ?? "#00C896";
+  const glowColor = STATUS_GLOW[animal.status] ?? "rgba(0,200,150,0.5)";
 
   if (!modelPath) return null;
 
@@ -231,7 +231,7 @@ export default function Animal3DMarker({
             width: 14,
             height: 14,
             borderRadius: "50%",
-            background: "#E53E3E",
+            background: "#FF4757",
             border: "2px solid white",
             zIndex: 2,
           }}
