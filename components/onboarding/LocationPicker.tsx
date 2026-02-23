@@ -109,9 +109,9 @@ export default function LocationPicker({
       {/* Search bar */}
       <div className="absolute top-3 left-3 right-3 z-20">
         <div className="relative">
-          <div className="flex items-center bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="flex items-center bg-navy-light rounded-xl shadow-lg overflow-hidden border border-cyan/20">
             <svg
-              className="ml-3 shrink-0 text-gray-400"
+              className="ml-3 shrink-0 text-slate-light"
               width="18"
               height="18"
               viewBox="0 0 24 24"
@@ -129,7 +129,7 @@ export default function LocationPicker({
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => results.length > 0 && setShowResults(true)}
               placeholder="Search for a place..."
-              className="flex-1 px-3 py-3 text-sm outline-none bg-transparent min-h-[44px]"
+              className="flex-1 px-3 py-3 text-sm outline-none bg-transparent min-h-[44px] text-white placeholder-slate-light"
             />
             {query && (
               <button
@@ -139,7 +139,7 @@ export default function LocationPicker({
                   setResults([]);
                   setShowResults(false);
                 }}
-                className="px-3 text-gray-400"
+                className="px-3 text-slate-light"
               >
                 <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M1 1l12 12M13 1L1 13" />
@@ -150,16 +150,16 @@ export default function LocationPicker({
 
           {/* Search results dropdown */}
           {showResults && results.length > 0 && (
-            <div className="mt-1 bg-white rounded-xl shadow-lg overflow-hidden max-h-[200px] overflow-y-auto">
+            <div className="mt-1 bg-navy-light rounded-xl shadow-lg overflow-hidden max-h-[200px] overflow-y-auto border border-cyan/20">
               {results.map((r) => (
                 <button
                   key={r.id}
                   type="button"
                   onClick={() => handleSelectResult(r)}
-                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100 last:border-0 flex items-start gap-2"
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-surface-elevated active:bg-surface-elevated border-b border-slate-dark/30 last:border-0 flex items-start gap-2 text-white"
                 >
                   <svg
-                    className="mt-0.5 shrink-0 text-primary"
+                    className="mt-0.5 shrink-0 text-cyan"
                     width="14"
                     height="14"
                     viewBox="0 0 24 24"
@@ -196,9 +196,9 @@ export default function LocationPicker({
         <svg width="36" height="48" viewBox="0 0 36 48" fill="none">
           <path
             d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 30 18 30s18-16.5 18-30C36 8.06 27.94 0 18 0z"
-            fill="#3D7A35"
+            fill="#00E5CC"
           />
-          <circle cx="18" cy="18" r="7" fill="white" />
+          <circle cx="18" cy="18" r="7" fill="#0F2027" />
         </svg>
         {/* Pin shadow */}
         <div
@@ -211,7 +211,7 @@ export default function LocationPicker({
       <button
         type="button"
         onClick={handleUseMyLocation}
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 bg-white rounded-xl px-5 py-3 shadow-lg flex items-center gap-2 text-sm font-semibold text-primary active:scale-[0.97] transition-transform min-h-[44px]"
+        className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 bg-navy-light rounded-xl px-5 py-3 shadow-lg flex items-center gap-2 text-sm font-semibold text-cyan active:scale-[0.97] transition-transform min-h-[44px] border border-cyan/20"
       >
         <svg
           width="18"

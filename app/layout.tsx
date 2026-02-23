@@ -16,13 +16,13 @@ const dmSerif = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'Imfuyo Yam — My Livestock',
-  description: 'GPS livestock tracking for South African farmers. Protect your herd from theft.',
+  title: 'HerdGuard — Smart Livestock Protection',
+  description: 'Smart GPS livestock tracking and protection for South African farmers.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Imfuyo Yam',
+    title: 'HerdGuard',
   },
 };
 
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#3D7A35',
+  themeColor: '#0F2027',
 };
 
 export default function RootLayout({
@@ -42,12 +42,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${dmSerif.variable}`}>
       <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link
           href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css"
           rel="stylesheet"
         />
       </head>
-      <body className="font-body bg-white">
+      <body className="font-body">
         <div className="app-shell">{children}</div>
       </body>
     </html>

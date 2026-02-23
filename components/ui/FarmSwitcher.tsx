@@ -28,19 +28,19 @@ export default function FarmSwitcher({
 
   return (
     <div
-      className="absolute inset-0 z-50 bg-black/30"
+      className="absolute inset-0 z-50 bg-black/50"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-b-2xl shadow-xl p-4 w-full relative"
+        className="bg-navy-light rounded-b-2xl shadow-xl p-4 w-full relative border-b border-cyan/20"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg">My Farms</h2>
+          <h2 className="font-heading text-lg text-white">My Farms</h2>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-light"
             aria-label="Close"
           >
             <svg
@@ -70,14 +70,14 @@ export default function FarmSwitcher({
                 onClick={() => onSelectFarm(farm.id)}
                 className={`rounded-xl p-3 flex items-center gap-3 w-full transition-colors min-h-[44px] ${
                   isActive
-                    ? "bg-primary/10 border border-primary"
-                    : "bg-surface hover:bg-gray-100"
+                    ? "bg-cyan/10 border border-cyan"
+                    : "bg-surface-card hover:bg-surface-elevated"
                 }`}
               >
                 {/* Home icon circle */}
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    isActive ? "bg-primary" : "bg-gray-300"
+                    isActive ? "bg-cyan" : "bg-slate-dark"
                   }`}
                 >
                   <svg
@@ -86,7 +86,7 @@ export default function FarmSwitcher({
                     height="18"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="white"
+                    stroke={isActive ? "#0F2027" : "white"}
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -98,17 +98,17 @@ export default function FarmSwitcher({
 
                 {/* Farm info */}
                 <div className="flex flex-col items-start flex-1 min-w-0">
-                  <span className="font-semibold text-sm truncate w-full text-left">
+                  <span className="font-semibold text-sm truncate w-full text-left text-white">
                     {farm.name}
                   </span>
-                  <span className="text-xs text-muted">
+                  <span className="text-xs text-slate-light">
                     {farm.latitude.toFixed(4)}, {farm.longitude.toFixed(4)}
                   </span>
                 </div>
 
                 {/* Animal count badge */}
-                <span className="text-xs bg-surface rounded-full px-2 py-0.5 flex-shrink-0">
-                  {farm._count?.animals ?? 0} 🐄
+                <span className="text-xs bg-surface-card rounded-full px-2 py-0.5 flex-shrink-0 text-slate-light">
+                  {farm._count?.animals ?? 0} animals
                 </span>
 
                 {/* Active checkmark */}
@@ -119,7 +119,7 @@ export default function FarmSwitcher({
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="#3D7A35"
+                    stroke="#00E5CC"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -139,7 +139,7 @@ export default function FarmSwitcher({
             router.push("/setup-farm");
             onClose();
           }}
-          className="mt-3 rounded-xl border-2 border-dashed border-primary/30 p-3 w-full flex items-center justify-center gap-2 text-primary text-sm font-semibold min-h-[44px] transition-colors hover:bg-primary/5"
+          className="mt-3 rounded-xl border-2 border-dashed border-cyan/30 p-3 w-full flex items-center justify-center gap-2 text-cyan text-sm font-semibold min-h-[44px] transition-colors hover:bg-cyan/5"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

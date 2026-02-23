@@ -14,14 +14,14 @@ const TOTAL_STEPS = 4;
 const boundaryFill = {
   id: "setup-boundary-fill",
   type: "fill" as const,
-  paint: { "fill-color": "rgba(61,122,53,0.12)" },
+  paint: { "fill-color": "rgba(0,229,204,0.12)" },
 };
 
 const boundaryLine = {
   id: "setup-boundary-line",
   type: "line" as const,
   paint: {
-    "line-color": "#3D7A35",
+    "line-color": "#00E5CC",
     "line-width": 2,
     "line-dasharray": [4, 3],
   },
@@ -88,14 +88,14 @@ export default function FarmSetupWizard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-navy">
       {/* Progress dots */}
       <div className="flex justify-center gap-2 pt-6 pb-2">
         {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
           <div
             key={i}
             className={`w-2.5 h-2.5 rounded-full transition-colors ${
-              i + 1 <= step ? "bg-primary" : "bg-gray-300"
+              i + 1 <= step ? "bg-cyan" : "bg-slate-dark"
             }`}
           />
         ))}
@@ -106,7 +106,7 @@ export default function FarmSetupWizard() {
         <button
           type="button"
           onClick={() => setStep((s) => s - 1)}
-          className="self-start px-4 py-2 text-sm text-muted flex items-center gap-1"
+          className="self-start px-4 py-2 text-sm text-slate-light flex items-center gap-1"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M15 18l-6-6 6-6" />
@@ -120,16 +120,16 @@ export default function FarmSetupWizard() {
         {/* ---- Step 1: Farm Name ---- */}
         {step === 1 && (
           <div className="flex-1 flex flex-col items-center justify-center px-6">
-            <h1 className="font-heading text-2xl text-center mb-2">
+            <h1 className="font-heading text-2xl text-center mb-2 text-white">
               What&apos;s your farm called?
             </h1>
-            <p className="text-muted text-sm mb-8">Give your farm a name</p>
+            <p className="text-slate-light text-sm mb-8">Give your farm a name</p>
             <input
               type="text"
               value={farmName}
               onChange={(e) => setFarmName(e.target.value)}
               placeholder="e.g. Ndlela Farm"
-              className="w-full rounded-xl bg-surface p-4 min-h-[44px] text-base outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full rounded-xl bg-surface-card p-4 min-h-[44px] text-base text-white placeholder-slate-light outline-none border border-slate-dark focus:border-cyan focus:ring-1 focus:ring-cyan"
               autoFocus
             />
           </div>
@@ -138,13 +138,13 @@ export default function FarmSetupWizard() {
         {/* ---- Step 2: Pick Location ---- */}
         {step === 2 && (
           <div className="flex-1 flex flex-col px-4 pb-4">
-            <h1 className="font-heading text-xl text-center mb-1">
+            <h1 className="font-heading text-xl text-center mb-1 text-white">
               Where is your farm?
             </h1>
-            <p className="text-muted text-sm text-center mb-3">
+            <p className="text-slate-light text-sm text-center mb-3">
               Search or pan the map to your farm&apos;s location
             </p>
-            <div className="rounded-xl overflow-hidden border border-gray-200" style={{ height: "calc(100vh - 280px)", minHeight: "350px" }}>
+            <div className="rounded-xl overflow-hidden border border-cyan/20" style={{ height: "calc(100vh - 280px)", minHeight: "350px" }}>
               <LocationPicker
                 latitude={latitude}
                 longitude={longitude}
@@ -152,7 +152,7 @@ export default function FarmSetupWizard() {
               />
             </div>
             {(latitude !== 0 || longitude !== 0) && (
-              <p className="text-xs text-muted text-center mt-2">
+              <p className="text-xs text-slate-light text-center mt-2">
                 {latitude.toFixed(4)}, {longitude.toFixed(4)}
               </p>
             )}
@@ -162,13 +162,13 @@ export default function FarmSetupWizard() {
         {/* ---- Step 3: Set Radius ---- */}
         {step === 3 && (
           <div className="flex-1 flex flex-col px-4 pb-4">
-            <h1 className="font-heading text-xl text-center mb-1">
+            <h1 className="font-heading text-xl text-center mb-1 text-white">
               Set your farm boundary
             </h1>
-            <p className="text-muted text-sm text-center mb-3">
+            <p className="text-slate-light text-sm text-center mb-3">
               Adjust the radius to cover your land
             </p>
-            <div className="rounded-xl overflow-hidden border border-gray-200" style={{ height: "calc(100vh - 380px)", minHeight: "250px" }}>
+            <div className="rounded-xl overflow-hidden border border-cyan/20" style={{ height: "calc(100vh - 380px)", minHeight: "250px" }}>
               <Map
                 initialViewState={{
                   latitude,
@@ -190,7 +190,7 @@ export default function FarmSetupWizard() {
               </Map>
             </div>
             <div className="mt-4 px-2">
-              <p className="text-sm font-semibold mb-2">Farm radius</p>
+              <p className="text-sm font-semibold mb-2 text-white">Farm radius</p>
               <input
                 type="range"
                 min={100}
@@ -198,11 +198,11 @@ export default function FarmSetupWizard() {
                 step={50}
                 value={radiusMeters}
                 onChange={(e) => setRadiusMeters(Number(e.target.value))}
-                className="w-full h-2 rounded-full accent-primary"
+                className="w-full h-2 rounded-full accent-cyan"
               />
-              <div className="flex justify-between text-xs text-muted mt-1">
+              <div className="flex justify-between text-xs text-slate-light mt-1">
                 <span>100m</span>
-                <span className="font-semibold text-sm text-primary">
+                <span className="font-semibold text-sm text-cyan">
                   {radiusMeters}m &middot; {hectares} ha
                 </span>
                 <span>2000m</span>
@@ -214,27 +214,27 @@ export default function FarmSetupWizard() {
         {/* ---- Step 4: Confirm ---- */}
         {step === 4 && (
           <div className="flex-1 flex flex-col px-4 pb-4">
-            <h1 className="font-heading text-xl text-center mb-4">
+            <h1 className="font-heading text-xl text-center mb-4 text-white">
               Confirm your farm
             </h1>
-            <div className="bg-surface rounded-2xl p-5 space-y-4">
+            <div className="bg-surface-card rounded-2xl p-5 space-y-4 border border-cyan/20">
               <div className="flex justify-between">
-                <span className="text-sm text-muted">Farm name</span>
-                <span className="font-semibold">{farmName}</span>
+                <span className="text-sm text-slate-light">Farm name</span>
+                <span className="font-semibold text-white">{farmName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted">Location</span>
-                <span className="font-semibold text-sm">
+                <span className="text-sm text-slate-light">Location</span>
+                <span className="font-semibold text-sm text-white">
                   {latitude.toFixed(4)}, {longitude.toFixed(4)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted">Boundary</span>
-                <span className="font-semibold">{radiusMeters}m radius</span>
+                <span className="text-sm text-slate-light">Boundary</span>
+                <span className="font-semibold text-white">{radiusMeters}m radius</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted">Approx. area</span>
-                <span className="font-semibold">{hectares} hectares</span>
+                <span className="text-sm text-slate-light">Approx. area</span>
+                <span className="font-semibold text-white">{hectares} hectares</span>
               </div>
             </div>
             {error && (
@@ -251,7 +251,7 @@ export default function FarmSetupWizard() {
             type="button"
             disabled={!canProceed()}
             onClick={() => setStep((s) => s + 1)}
-            className="w-full bg-primary text-white font-semibold rounded-xl p-4 min-h-[44px] disabled:opacity-40 active:scale-[0.98] transition-transform"
+            className="w-full bg-cyan text-navy font-bold rounded-xl p-4 min-h-[44px] disabled:opacity-40 active:scale-[0.98] transition-transform"
           >
             {step === 2 ? "Confirm Location" : step === 3 ? "Confirm Boundary" : "Next"}
           </button>
@@ -260,7 +260,7 @@ export default function FarmSetupWizard() {
             type="button"
             disabled={loading}
             onClick={handleCreate}
-            className="w-full bg-primary text-white font-semibold rounded-xl p-4 min-h-[44px] disabled:opacity-60 active:scale-[0.98] transition-transform"
+            className="w-full bg-cyan text-navy font-bold rounded-xl p-4 min-h-[44px] disabled:opacity-60 active:scale-[0.98] transition-transform"
           >
             {loading ? "Creating Farm..." : "Create Farm"}
           </button>

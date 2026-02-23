@@ -41,15 +41,15 @@ interface FarmMapProps {
 /* ------------------------------------------------------------------ */
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
-const MAP_STYLE = "mapbox://styles/mapbox/outdoors-v12";
+const MAP_STYLE = "mapbox://styles/mapbox/dark-v11";
 
 // Types that have GLB 3D models
 const TYPES_WITH_MODELS = new Set(["COW", "SHEEP", "CHICKEN"]);
 
 const STATUS_COLORS: Record<Animal["status"], string> = {
-  SAFE: "#7FB069",
-  WARNING: "#DD6B20",
-  ALERT: "#E53E3E",
+  SAFE: "#00E5CC",
+  WARNING: "#FFA502",
+  ALERT: "#FF4757",
 };
 
 const ANIMAL_EMOJI: Record<Animal["type"], string> = {
@@ -69,7 +69,7 @@ const boundaryFillLayer: LayerProps = {
   id: "farm-boundary-fill",
   type: "fill",
   paint: {
-    "fill-color": "rgba(61,122,53,0.08)",
+    "fill-color": "rgba(0,229,204,0.08)",
   },
 };
 
@@ -77,7 +77,7 @@ const boundaryLineLayer: LayerProps = {
   id: "farm-boundary-line",
   type: "line",
   paint: {
-    "line-color": "#3D7A35",
+    "line-color": "#00E5CC",
     "line-width": 2,
     "line-dasharray": [4, 3],
   },
@@ -88,12 +88,12 @@ const boundaryLineLayer: LayerProps = {
 /* ------------------------------------------------------------------ */
 
 const bobbingCSS = `
-@keyframes imfuyo-bob {
+@keyframes hg-bob {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-4px); }
 }
-.imfuyo-marker {
-  animation: imfuyo-bob 2.4s ease-in-out infinite;
+.hg-marker {
+  animation: hg-bob 2.4s ease-in-out infinite;
 }
 `;
 
@@ -115,7 +115,7 @@ function EmojiMarker({
 
   return (
     <div
-      className="imfuyo-marker"
+      className="hg-marker"
       onClick={(e) => {
         e.stopPropagation();
         onClick();

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import AnimalCard, { type Animal } from "@/components/ui/AnimalCard";
+import { useOnlineStatus } from "@/lib/useOnlineStatus";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -38,6 +39,7 @@ const STATUS_OPTIONS: { key: StatusFilter; label: string }[] = [
 /* ------------------------------------------------------------------ */
 
 export default function HerdPage() {
+  const isOnline = useOnlineStatus();
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -170,15 +172,15 @@ export default function HerdPage() {
   if (loading) {
     return (
       <div className="p-4 pt-6 space-y-3">
-        <div className="h-8 w-32 bg-surface rounded-lg animate-pulse" />
-        <div className="h-11 w-full bg-surface rounded-xl animate-pulse" />
+        <div className="h-8 w-32 bg-surface-card rounded-lg animate-pulse" />
+        <div className="h-11 w-full bg-surface-card rounded-xl animate-pulse" />
         <div className="flex gap-2 overflow-hidden">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-8 w-20 bg-surface rounded-full animate-pulse shrink-0" />
+            <div key={i} className="h-8 w-20 bg-surface-card rounded-full animate-pulse shrink-0" />
           ))}
         </div>
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-16 w-full bg-surface rounded-xl animate-pulse" />
+          <div key={i} className="h-16 w-full bg-surface-card rounded-xl animate-pulse" />
         ))}
       </div>
     );
@@ -187,7 +189,7 @@ export default function HerdPage() {
   return (
     <div className="p-4 pt-6 pb-24">
       {/* Header */}
-      <h1 className="font-heading text-2xl font-bold mb-4">My Herd</h1>
+      <h1 className="font-heading text-2xl font-bold mb-4 text-white">My Herd</h1>
 
       {/* Search bar */}
       <div className="relative mb-4">
@@ -210,7 +212,7 @@ export default function HerdPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search animals..."
-          className="w-full pl-10 pr-4 py-2.5 bg-surface rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/30"
+          className="w-full pl-10 pr-4 py-2.5 bg-surface-card rounded-xl text-sm text-white placeholder-slate-light outline-none focus:ring-2 focus:ring-cyan/30"
         />
       </div>
 
@@ -223,8 +225,8 @@ export default function HerdPage() {
             onClick={() => setTypeFilter(opt.key)}
             className={`rounded-full px-3.5 py-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
               typeFilter === opt.key
-                ? "bg-primary text-white"
-                : "bg-surface text-gray-700"
+                ? "bg-cyan text-navy"
+                : "bg-surface-card text-slate-light"
             }`}
           >
             {opt.emoji ? `${opt.emoji} ` : ""}
@@ -242,8 +244,8 @@ export default function HerdPage() {
             onClick={() => setStatusFilter(opt.key)}
             className={`rounded-full px-3.5 py-1.5 text-xs font-medium whitespace-nowrap shrink-0 transition-colors border ${
               statusFilter === opt.key
-                ? "border-primary text-primary bg-primary/5"
-                : "border-gray-200 text-gray-500 bg-white"
+                ? "border-cyan text-cyan bg-cyan/10"
+                : "border-slate-dark text-slate-light bg-surface-card"
             }`}
           >
             {opt.label}
@@ -284,8 +286,12 @@ export default function HerdPage() {
       {/* FAB button */}
       <button
         type="button"
-        onClick={() => setShowAddModal(true)}
-        className="fixed bottom-[calc(72px+env(safe-area-inset-bottom))] right-4 w-14 h-14 rounded-full bg-primary shadow-lg text-white text-2xl flex items-center justify-center active:scale-95 transition-transform z-30"
+        onClick={() => isOnline ? setShowAddModal(true) : null}
+        disabled={!isOnline}
+        title={!isOnline ? "Cannot add animals while offline" : "Add animal"}
+        className={`fixed bottom-[calc(72px+env(safe-area-inset-bottom))] right-4 w-14 h-14 rounded-full shadow-lg text-2xl flex items-center justify-center active:scale-95 transition-transform z-30 ${
+          isOnline ? "bg-cyan text-navy" : "bg-slate-dark text-slate-light opacity-50"
+        }`}
       >
         +
       </button>
@@ -298,15 +304,15 @@ export default function HerdPage() {
             if (e.target === e.currentTarget) setShowAddModal(false);
           }}
         >
-          <div className="bg-white rounded-2xl p-6 w-full max-w-[380px] shadow-xl">
-            <h2 className="font-heading text-xl font-bold text-center mb-5">
+          <div className="bg-navy-light rounded-2xl p-6 w-full max-w-[380px] shadow-xl">
+            <h2 className="font-heading text-xl font-bold text-center mb-5 text-white">
               Add Animal
             </h2>
 
             <form onSubmit={handleAddAnimal} className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-light mb-1">
                   Name
                 </label>
                 <input
@@ -314,13 +320,13 @@ export default function HerdPage() {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="e.g. Bessie"
-                  className="w-full bg-surface rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full bg-navy rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-light border border-slate-dark outline-none focus:border-cyan focus:ring-2 focus:ring-cyan/30"
                 />
               </div>
 
               {/* Tag ID */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-light mb-1">
                   Tag ID
                 </label>
                 <input
@@ -328,7 +334,7 @@ export default function HerdPage() {
                   value={formTagId}
                   onChange={(e) => setFormTagId(e.target.value)}
                   placeholder="e.g. TAG-001"
-                  className="w-full bg-surface rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full bg-navy rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-light border border-slate-dark outline-none focus:border-cyan focus:ring-2 focus:ring-cyan/30"
                 />
                 <p className="text-xs text-muted mt-1">
                   Scan QR code on the animal&apos;s tag
@@ -337,13 +343,13 @@ export default function HerdPage() {
 
               {/* Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-light mb-1">
                   Type
                 </label>
                 <select
                   value={formType}
                   onChange={(e) => setFormType(e.target.value as AnimalType)}
-                  className="w-full bg-surface rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30 appearance-none"
+                  className="w-full bg-navy rounded-xl px-4 py-2.5 text-sm text-white border border-slate-dark outline-none focus:border-cyan focus:ring-2 focus:ring-cyan/30 appearance-none"
                 >
                   <option value="COW">{"\uD83D\uDC04"} Cow</option>
                   <option value="SHEEP">{"\uD83D\uDC11"} Sheep</option>
@@ -357,10 +363,10 @@ export default function HerdPage() {
               {/* Farm (auto) */}
               {farms.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-light mb-1">
                     Farm
                   </label>
-                  <div className="bg-surface rounded-xl px-4 py-2.5 text-sm text-muted">
+                  <div className="bg-surface-card rounded-xl px-4 py-2.5 text-sm text-muted">
                     {(() => {
                       const cookies = document.cookie.split(";").map((c) => c.trim());
                       const stored = cookies.find((c) => c.startsWith("activeFarmId="));
@@ -381,7 +387,7 @@ export default function HerdPage() {
               <button
                 type="submit"
                 disabled={formSubmitting}
-                className="w-full bg-primary text-white font-semibold py-3 rounded-xl active:scale-[0.98] transition-transform disabled:opacity-50"
+                className="w-full bg-cyan text-navy font-semibold py-3 rounded-xl active:scale-[0.98] transition-transform disabled:opacity-50"
               >
                 {formSubmitting ? "Adding..." : "Add Animal"}
               </button>
@@ -390,7 +396,7 @@ export default function HerdPage() {
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="w-full text-center text-muted py-2 text-sm"
+                className="w-full text-center text-slate-light py-2 text-sm"
               >
                 Cancel
               </button>

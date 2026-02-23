@@ -29,30 +29,30 @@ export default function TheftReportModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-2xl p-6 w-full max-w-[380px] shadow-xl">
+      <div className="bg-navy-light rounded-2xl p-6 w-full max-w-[380px] shadow-xl border border-alert-red/30">
         {/* Heading */}
-        <h2 className="font-heading text-xl font-bold text-center mb-4">
+        <h2 className="font-heading text-xl font-bold text-center mb-4 text-white">
           Report Livestock Theft
         </h2>
 
         {/* Animal details */}
-        <div className="bg-surface rounded-xl p-4 mb-6 space-y-2">
+        <div className="bg-navy rounded-xl p-4 mb-6 space-y-2">
           <div className="flex justify-between">
-            <span className="text-muted text-sm">Animal</span>
-            <span className="font-semibold">{animal.name}</span>
+            <span className="text-slate-light text-sm">Animal</span>
+            <span className="font-semibold text-white">{animal.name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted text-sm">Tag ID</span>
-            <span className="font-semibold">{animal.tagId}</span>
+            <span className="text-slate-light text-sm">Tag ID</span>
+            <span className="font-semibold text-white">{animal.tagId}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted text-sm">Last GPS</span>
-            <span className="font-semibold text-sm">
+            <span className="text-slate-light text-sm">Last GPS</span>
+            <span className="font-semibold text-sm text-white">
               {animal.latitude.toFixed(6)}, {animal.longitude.toFixed(6)}
             </span>
           </div>
@@ -72,7 +72,7 @@ export default function TheftReportModal({
         <button
           type="button"
           onClick={onClose}
-          className="block w-full text-center text-muted mt-3 py-2 text-sm"
+          className="block w-full text-center text-slate-light mt-3 py-2 text-sm"
         >
           Cancel
         </button>

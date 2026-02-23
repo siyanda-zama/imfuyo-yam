@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import BottomNav from "@/components/ui/BottomNav";
+import OfflineBanner from "@/components/ui/OfflineBanner";
 
 // Force dynamic rendering — child pages use browser-only APIs (Mapbox)
 export const dynamic = "force-dynamic";
@@ -25,7 +26,8 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="relative min-h-screen max-w-[430px] mx-auto">
+    <div className="relative min-h-screen max-w-[430px] mx-auto bg-navy">
+      <OfflineBanner />
       <main className="pb-[calc(56px+env(safe-area-inset-bottom))]">
         {children}
       </main>

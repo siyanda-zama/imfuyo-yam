@@ -93,8 +93,8 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
           onClick={() => { setMode('login'); setError(''); }}
           className={`flex-1 pb-3 text-center font-semibold transition-colors ${
             mode === 'login'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-muted'
+              ? 'border-b-2 border-cyan text-cyan'
+              : 'text-slate-light'
           }`}
         >
           Login
@@ -104,8 +104,8 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
           onClick={() => { setMode('register'); setError(''); }}
           className={`flex-1 pb-3 text-center font-semibold transition-colors ${
             mode === 'register'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-muted'
+              ? 'border-b-2 border-cyan text-cyan'
+              : 'text-slate-light'
           }`}
         >
           Register
@@ -121,7 +121,7 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="rounded-xl bg-surface p-4 min-h-[44px] outline-none focus:ring-2 focus:ring-primary"
+            className="rounded-xl bg-navy p-4 min-h-[44px] text-white placeholder-slate-light outline-none border border-slate-dark focus:border-cyan focus:ring-1 focus:ring-cyan"
           />
         )}
 
@@ -131,7 +131,7 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           required
-          className="rounded-xl bg-surface p-4 min-h-[44px] outline-none focus:ring-2 focus:ring-primary"
+          className="rounded-xl bg-navy p-4 min-h-[44px] text-white placeholder-slate-light outline-none border border-slate-dark focus:border-cyan focus:ring-1 focus:ring-cyan"
         />
 
         <input
@@ -140,7 +140,7 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="rounded-xl bg-surface p-4 min-h-[44px] outline-none focus:ring-2 focus:ring-primary"
+          className="rounded-xl bg-navy p-4 min-h-[44px] text-white placeholder-slate-light outline-none border border-slate-dark focus:border-cyan focus:ring-1 focus:ring-cyan"
         />
 
         {error && (
@@ -150,7 +150,7 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
         <button
           type="submit"
           disabled={loading}
-          className="bg-primary text-white rounded-xl p-4 w-full font-semibold min-h-[44px] disabled:opacity-60 transition-opacity"
+          className="bg-cyan text-navy rounded-xl p-4 w-full font-bold min-h-[44px] disabled:opacity-60 transition-all hover:bg-cyan-light"
         >
           {loading
             ? (mode === 'login' ? 'Signing in...' : 'Creating account...')

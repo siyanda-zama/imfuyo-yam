@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useOnlineStatus } from "@/lib/useOnlineStatus";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -78,6 +79,7 @@ const ALERT_CONFIG: Record<
 /* ------------------------------------------------------------------ */
 
 export default function AlertsPage() {
+  const isOnline = useOnlineStatus();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -133,9 +135,9 @@ export default function AlertsPage() {
   if (loading) {
     return (
       <div className="p-4 pt-6 space-y-3">
-        <div className="h-8 w-24 bg-surface rounded-lg animate-pulse" />
+        <div className="h-8 w-24 bg-surface-card rounded-lg animate-pulse" />
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-20 w-full bg-surface rounded-xl animate-pulse" />
+          <div key={i} className="h-20 w-full bg-surface-card rounded-xl animate-pulse" />
         ))}
       </div>
     );
@@ -166,7 +168,7 @@ export default function AlertsPage() {
       {/* Empty state */}
       {alerts.length === 0 && !error && (
         <div className="text-center py-20">
-          <div className="w-16 h-16 bg-primary-light/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-cyan/15 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
               width="32"
               height="32"
@@ -176,7 +178,7 @@ export default function AlertsPage() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-primary"
+              className="text-cyan"
             >
               <path d="M20 6L9 17l-5-5" />
             </svg>
@@ -195,7 +197,7 @@ export default function AlertsPage() {
           return (
             <div
               key={alert.id}
-              className={`bg-white rounded-xl border-l-4 ${config.borderColor} p-4 shadow-sm transition-opacity ${
+              className={`bg-navy-light rounded-xl border-l-4 ${config.borderColor} p-4 border border-slate-dark/30 transition-opacity ${
                 alert.resolved ? "opacity-50" : ""
               }`}
             >
@@ -213,7 +215,7 @@ export default function AlertsPage() {
                   {/* Message */}
                   <p
                     className={`text-sm font-medium ${
-                      alert.resolved ? "line-through text-muted" : "text-gray-800"
+                      alert.resolved ? "line-through text-muted" : "text-white"
                     }`}
                   >
                     {alert.message}
@@ -234,10 +236,10 @@ export default function AlertsPage() {
                 {/* Resolve toggle */}
                 <button
                   type="button"
-                  onClick={() => toggleResolved(alert)}
-                  disabled={isToggling}
+                  onClick={() => isOnline && toggleResolved(alert)}
+                  disabled={isToggling || !isOnline}
                   className={`shrink-0 w-11 h-6 rounded-full transition-colors relative ${
-                    alert.resolved ? "bg-primary" : "bg-gray-300"
+                    alert.resolved ? "bg-cyan" : "bg-slate-dark"
                   } ${isToggling ? "opacity-50" : ""}`}
                   title={alert.resolved ? "Mark unresolved" : "Mark resolved"}
                 >

@@ -6,12 +6,13 @@ import BottomSheet from "@/components/ui/BottomSheet";
 
 const FarmMap = dynamic(() => import("@/components/map/FarmMap"), {
   ssr: false,
-  loading: () => <div className="w-full h-full bg-surface" />,
+  loading: () => <div className="w-full h-full bg-navy" />,
 });
 import AnimalCard, { type Animal } from "@/components/ui/AnimalCard";
 import TheftReportModal from "@/components/ui/TheftReportModal";
 import FarmSwitcher from "@/components/ui/FarmSwitcher";
 import { isOutsideBoundary } from "@/lib/geo";
+import { useOnlineStatus } from "@/lib/useOnlineStatus";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -64,6 +65,7 @@ export default function MapDashboard() {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
   const [alertBanner, setAlertBanner] = useState<string | null>(null);
+  const isOnline = useOnlineStatus();
 
   /* ---------- Fetch farms + animals on mount ---------- */
   useEffect(() => {
@@ -235,7 +237,7 @@ export default function MapDashboard() {
         if (typeof Notification !== "undefined" && Notification.permission === "granted") {
           new Notification(`⚠️ ${alert.name} left the boundary!`, {
             body: `${alert.name} (${alert.tagId}) has moved outside ${farmRef.current?.name}`,
-            icon: "/imfuyo-logo.png",
+            icon: "/herdguard-logo.jpeg",
           });
         }
       }
@@ -289,10 +291,10 @@ export default function MapDashboard() {
   /* ---------- Loading state ---------- */
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-surface">
+      <div className="fixed inset-0 flex items-center justify-center bg-navy">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted text-sm">Loading your farm...</p>
+          <div className="w-10 h-10 border-4 border-cyan border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-light text-sm">Loading your farm...</p>
         </div>
       </div>
     );
@@ -312,7 +314,7 @@ export default function MapDashboard() {
 
       {/* ---- Layer 2: Top bar (z-10) ---- */}
       <div className="absolute top-0 left-0 right-0 z-10">
-        <div className="rounded-2xl bg-white/90 backdrop-blur shadow-sm mx-4 mt-[env(safe-area-inset-top,12px)] p-3 flex justify-between items-center">
+        <div className="rounded-2xl bg-navy-light/90 backdrop-blur shadow-sm mx-4 mt-[env(safe-area-inset-top,12px)] p-3 flex justify-between items-center">
           {/* Hamburger — opens farm switcher */}
           <button
             type="button"
@@ -327,29 +329,35 @@ export default function MapDashboard() {
           </button>
 
           {/* Title */}
-          <span className="font-heading text-primary text-lg">Imfuyo Yam</span>
+          <span className="font-heading text-cyan text-lg">HerdGuard</span>
 
           {/* Avatar */}
-          <div className="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center">
-            <span className="text-primary-dark text-sm font-semibold">
+          <div className="w-8 h-8 bg-cyan/20 rounded-full flex items-center justify-center">
+            <span className="text-cyan text-sm font-semibold">
               {userInitial}
             </span>
           </div>
         </div>
       </div>
 
-      {/* ---- Layer 3: LIVE indicator (z-10) ---- */}
-      {isLive && (
-        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-white/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-xs font-semibold text-green-700">LIVE</span>
+      {/* ---- Layer 3: LIVE / OFFLINE indicator (z-10) ---- */}
+      {isOnline && isLive && (
+        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-navy-light/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-lime animate-pulse" />
+          <span className="text-xs font-semibold text-lime">LIVE</span>
+        </div>
+      )}
+      {!isOnline && (
+        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-alert-orange/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-navy" />
+          <span className="text-xs font-semibold text-navy">OFFLINE</span>
         </div>
       )}
 
       {/* ---- Alert banner (z-15) ---- */}
       {alertBanner && (
         <div className="absolute top-[calc(env(safe-area-inset-top,12px)+64px)] left-4 right-4 z-[15] animate-in slide-in-from-top-2">
-          <div className="bg-red-600 text-white rounded-xl px-4 py-3 shadow-lg flex items-center gap-2">
+          <div className="bg-alert-red text-white rounded-xl px-4 py-3 shadow-lg flex items-center gap-2">
             <span className="text-lg">🚨</span>
             <span className="text-sm font-semibold flex-1">{alertBanner}</span>
             <button
@@ -383,7 +391,7 @@ export default function MapDashboard() {
                 ([type, count]) => (
                   <span
                     key={type}
-                    className="bg-surface rounded-full px-2.5 py-1 text-xs font-medium text-gray-700"
+                    className="bg-surface-card rounded-full px-2.5 py-1 text-xs font-medium text-slate-light"
                   >
                     {ANIMAL_EMOJI[type]} {count}
                   </span>
@@ -406,8 +414,8 @@ export default function MapDashboard() {
                 onClick={() => setActiveFilter(opt.key)}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
                   activeFilter === opt.key
-                    ? "bg-primary text-white"
-                    : "bg-surface text-gray-700"
+                    ? "bg-cyan text-navy"
+                    : "bg-surface-card text-slate-light"
                 }`}
               >
                 {opt.label}
@@ -437,12 +445,12 @@ export default function MapDashboard() {
       {/* ---- Layer 5: Selected animal floating card (z-25) ---- */}
       {selectedAnimal && (
         <div className="absolute bottom-[160px] left-4 right-4 z-[25] animate-in slide-in-from-bottom-4">
-          <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
+          <div className="bg-navy-light rounded-2xl p-4 shadow-lg border border-cyan/20">
             {/* Close button */}
             <button
               type="button"
               onClick={() => setSelectedAnimalId(null)}
-              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-surface flex items-center justify-center"
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-surface-card flex items-center justify-center"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M1 1l12 12M13 1L1 13" />
@@ -451,7 +459,7 @@ export default function MapDashboard() {
 
             <div className="flex items-center gap-3">
               {/* Emoji avatar */}
-              <div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center text-2xl shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-surface-card flex items-center justify-center text-2xl shrink-0">
                 {ANIMAL_EMOJI[selectedAnimal.type]}
               </div>
 
@@ -465,9 +473,9 @@ export default function MapDashboard() {
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                     selectedAnimal.status === "SAFE"
-                      ? "bg-primary-light/20 text-primary-dark"
+                      ? "bg-cyan/15 text-cyan"
                       : selectedAnimal.status === "WARNING"
-                      ? "bg-alert-orange/20 text-alert-orange"
+                      ? "bg-alert-orange/15 text-alert-orange"
                       : "bg-alert-red/20 text-alert-red"
                   }`}
                 >
