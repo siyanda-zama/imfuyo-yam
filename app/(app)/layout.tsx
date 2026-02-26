@@ -18,6 +18,12 @@ export default async function AppLayout({
     redirect("/login");
   }
 
+  // Admin users should use the admin dashboard, not the farmer app
+  const role = (session.user as any).role;
+  if (role === 'ADMIN') {
+    redirect("/admin");
+  }
+
   // Redirect to farm setup if user has no farms
   const userId = (session.user as any).id;
   const farmCount = await prisma.farm.count({ where: { ownerId: userId } });

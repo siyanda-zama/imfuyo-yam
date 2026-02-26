@@ -15,5 +15,11 @@ export default async function AdminLayout({
     redirect('/login');
   }
 
+  // Only ADMIN role can access admin dashboard
+  const role = (session.user as any).role;
+  if (role !== 'ADMIN') {
+    redirect('/');
+  }
+
   return <AdminShell>{children}</AdminShell>;
 }

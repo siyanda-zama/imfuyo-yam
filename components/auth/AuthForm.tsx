@@ -63,6 +63,18 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
       return;
     }
 
+    // Fetch session to check role and redirect accordingly
+    try {
+      const sessionRes = await fetch('/api/auth/session');
+      const session = await sessionRes.json();
+      if (session?.user?.role === 'ADMIN') {
+        router.push('/admin');
+        return;
+      }
+    } catch {
+      // Fall through to default redirect
+    }
+
     router.push('/');
   };
 
@@ -103,6 +115,8 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
       setLoading(false);
     }
   };
+
+  // Also handle registration redirect — new users are always FARMER role
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

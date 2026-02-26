@@ -6,7 +6,11 @@ import AuthForm from '@/components/auth/AuthForm';
 export default async function RegisterPage() {
   const session = await auth();
 
-  if (session) {
+  if (session?.user) {
+    const role = (session.user as any).role;
+    if (role === 'ADMIN') {
+      redirect('/admin');
+    }
     redirect('/');
   }
 
