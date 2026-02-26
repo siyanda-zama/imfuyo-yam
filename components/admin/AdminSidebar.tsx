@@ -7,6 +7,7 @@ import {
   Shield,
   LayoutDashboard,
   MapPin,
+  Users,
   Activity,
   Bell,
   Brain,
@@ -23,6 +24,7 @@ interface AdminSidebarProps {
 const NAV_ITEMS = [
   { label: 'Overview', icon: LayoutDashboard, href: '/admin' },
   { label: 'Farms', icon: MapPin, href: '/admin/farms' },
+  { label: 'Users', icon: Users, href: '/admin/users' },
   { label: 'Livestock', icon: Activity, href: '/admin/livestock' },
   { label: 'Alerts', icon: Bell, href: '/admin/alerts' },
   { label: 'Analytics', icon: Brain, href: '/admin/analytics' },

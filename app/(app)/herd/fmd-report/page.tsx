@@ -390,7 +390,7 @@ export default function FmdReportPage() {
         </AnimatePresence>
 
         {/* Navigation buttons — above bottom nav */}
-        <div className="fixed bottom-[calc(56px+env(safe-area-inset-bottom))] left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/30 p-4">
+        <div className="fixed bottom-[72px] left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/30 p-4 z-30">
           <div className="max-w-lg mx-auto flex gap-3">
             {step > 0 && (
               <button

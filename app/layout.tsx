@@ -9,6 +9,7 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ['400', '500', '600', '700', '800'],
 });
 export const metadata: Metadata = {
+  metadataBase: new URL('https://herd-guard.vercel.app'),
   title: 'HerdGuard — Smart Livestock Protection',
   description: 'Smart GPS livestock tracking and protection for South African farmers.',
   manifest: '/manifest.json',
@@ -16,6 +17,17 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'HerdGuard',
+  },
+  openGraph: {
+    title: 'HerdGuard — Smart Livestock Protection',
+    description: 'Smart GPS livestock tracking and protection for South African farmers.',
+    siteName: 'HerdGuard',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'HerdGuard — Smart Livestock Protection',
+    description: 'Smart GPS livestock tracking and protection for South African farmers.',
   },
 };
 
@@ -36,7 +48,6 @@ export default function RootLayout({
     <html lang="en" className={jakarta.variable}>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link
           href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css"
           rel="stylesheet"
