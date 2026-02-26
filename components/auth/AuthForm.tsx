@@ -44,7 +44,7 @@ export default function AuthForm({ mode: initialMode = 'login', loginOnly = fals
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '';
-  const isAdminLogin = loginOnly || callbackUrl.includes('/admin');
+  const isAdminLogin = loginOnly || callbackUrl.includes('/admin') || callbackUrl.includes('%2Fadmin');
 
   const [mode, setMode] = useState<'login' | 'register'>(isAdminLogin ? 'login' : initialMode);
   const [name, setName] = useState('');
