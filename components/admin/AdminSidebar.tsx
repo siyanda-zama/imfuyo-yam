@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signOut } from 'next-auth/react';
 import {
   Shield,
   LayoutDashboard,
@@ -10,7 +11,7 @@ import {
   Bell,
   Brain,
   Bug,
-  ArrowLeft,
+  LogOut,
   X,
 } from 'lucide-react';
 
@@ -97,11 +98,11 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
       {/* Footer */}
       <div className="p-4 border-t border-border/50">
         <button
-          onClick={() => router.push('/account')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-text-secondary hover:text-white hover:bg-surface-light transition-colors"
+          onClick={() => signOut({ callbackUrl: '/login' })}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-danger/80 hover:text-danger hover:bg-danger/10 transition-colors"
         >
-          <ArrowLeft size={18} className="text-text-muted" />
-          <span className="text-sm font-medium">Back to App</span>
+          <LogOut size={18} />
+          <span className="text-sm font-medium">Sign Out</span>
         </button>
         <p className="text-[9px] text-text-muted text-center mt-3">
           Dept. of Agriculture, Land Reform
