@@ -77,6 +77,7 @@ export default function FarmSetupWizard() {
         } catch {}
         throw new Error(message);
       }
+      router.refresh();
       router.push("/");
     } catch (err: any) {
       setError(err.message);

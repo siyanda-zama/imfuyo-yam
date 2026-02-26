@@ -116,7 +116,7 @@ export default function FmdReportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-40">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-lg border-b border-border/30 px-4 py-3">
         <div className="flex items-center gap-3 max-w-lg mx-auto">
@@ -389,8 +389,8 @@ export default function FmdReportPage() {
           )}
         </AnimatePresence>
 
-        {/* Navigation buttons */}
-        <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/30 p-4">
+        {/* Navigation buttons — above bottom nav */}
+        <div className="fixed bottom-[calc(56px+env(safe-area-inset-bottom))] left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/30 p-4">
           <div className="max-w-lg mx-auto flex gap-3">
             {step > 0 && (
               <button
