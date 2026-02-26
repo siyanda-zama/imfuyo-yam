@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Map as MapIcon, MapPin } from 'lucide-react';
+import { Map as MapIcon } from 'lucide-react';
 import type { AdminFarm } from '@/lib/types';
 
 interface RegionalMapProps {
@@ -33,7 +33,7 @@ export default function RegionalMap({ farms }: RegionalMapProps) {
       </div>
 
       <div className="bg-surface rounded-xl border border-primary/10 overflow-hidden">
-        <div className="h-[240px] relative">
+        <div className="h-[240px] lg:h-[400px] relative">
           {MapComponent ? (
             <MapComponent
               initialViewState={{
@@ -46,23 +46,7 @@ export default function RegionalMap({ farms }: RegionalMapProps) {
               mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
               interactive={true}
               attributionControl={false}
-            >
-              {farms.map((farm) => {
-                const markerColor =
-                  farm.alertCount >= 3 ? '#FF4757' : farm.alertCount >= 1 ? '#FFB020' : '#00C896';
-                return (
-                  <div key={farm.id}>
-                    <div
-                      style={{
-                        position: 'absolute',
-                        transform: 'translate(-50%, -100%)',
-                      }}
-                    >
-                    </div>
-                  </div>
-                );
-              })}
-            </MapComponent>
+            />
           ) : (
             <div className="w-full h-full bg-surface-light flex items-center justify-center">
               <div className="text-center">
@@ -74,19 +58,21 @@ export default function RegionalMap({ farms }: RegionalMapProps) {
         </div>
 
         {/* Farm legend below map */}
-        <div className="p-3 border-t border-border/30 space-y-1.5">
-          {farms.map((farm) => {
-            const dotColor =
-              farm.alertCount >= 3 ? '#FF4757' : farm.alertCount >= 1 ? '#FFB020' : '#00C896';
-            return (
-              <div key={farm.id} className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: dotColor }} />
-                <span className="text-[11px] text-text-secondary flex-1 truncate">{farm.name}</span>
-                <span className="text-[10px] text-text-muted">{farm.province}</span>
-                <span className="text-[10px] font-semibold text-white">{farm.animalCount}</span>
-              </div>
-            );
-          })}
+        <div className="p-3 border-t border-border/30">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            {farms.map((farm) => {
+              const dotColor =
+                farm.alertCount >= 3 ? '#FF4757' : farm.alertCount >= 1 ? '#FFB020' : '#00C896';
+              return (
+                <div key={farm.id} className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
+                  <span className="text-[11px] text-text-secondary flex-1 truncate">{farm.name}</span>
+                  <span className="text-[10px] text-text-muted">{farm.province}</span>
+                  <span className="text-[10px] font-semibold text-white">{farm.animalCount}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </motion.section>

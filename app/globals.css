@@ -40,11 +40,10 @@ body {
 
 /* Mobile app wrapper */
 .app-shell {
-  max-width: 430px;
+  width: 100%;
   margin: 0 auto;
   min-height: 100dvh;
   position: relative;
-  overflow: hidden;
   background: var(--color-background);
 }
 

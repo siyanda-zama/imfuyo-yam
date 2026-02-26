@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import AdminHeader from '@/components/admin/AdminHeader';
 import OverviewCards from '@/components/admin/OverviewCards';
 import RegionalMap from '@/components/admin/RegionalMap';
 import LivestockAnalytics from '@/components/admin/LivestockAnalytics';
@@ -49,7 +48,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-[80vh] flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-text-secondary font-display">Loading dashboard...</p>
@@ -59,43 +58,51 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AdminHeader />
-
-      <div className="max-w-3xl mx-auto px-4 py-4 space-y-6 pb-12">
-        {/* Overview Stats */}
+    <div className="px-4 lg:px-8 py-6 space-y-8 pb-12 max-w-[1400px] mx-auto">
+      {/* Overview Stats */}
+      <section id="overview">
         <OverviewCards data={overview} />
+      </section>
 
-        {/* Regional Map */}
-        <RegionalMap farms={farms} />
-
-        {/* Livestock Analytics */}
-        <LivestockAnalytics data={overview} />
-
-        {/* Alert Analytics */}
-        <AlertAnalytics data={alertData} />
-
-        {/* Farm Performance */}
-        <FarmPerformance farms={farms} />
-
-        {/* AI Insights & Region Risks */}
-        <AIInsights insights={insights} regionRisks={regionRisks} />
-
-        {/* Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="text-center pt-4 pb-8"
-        >
-          <p className="text-[10px] text-text-muted">
-            HerdGuard Admin Dashboard · Data refreshed in real-time
-          </p>
-          <p className="text-[10px] text-text-muted mt-0.5">
-            Department of Agriculture, Land Reform and Rural Development
-          </p>
-        </motion.div>
+      {/* Two-column layout for map + livestock on desktop */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <section id="regional-map">
+          <RegionalMap farms={farms} />
+        </section>
+        <section id="livestock">
+          <LivestockAnalytics data={overview} />
+        </section>
       </div>
+
+      {/* Alert Analytics */}
+      <section id="alerts">
+        <AlertAnalytics data={alertData} />
+      </section>
+
+      {/* Farm Performance */}
+      <section id="farms">
+        <FarmPerformance farms={farms} />
+      </section>
+
+      {/* AI Insights & Region Risks */}
+      <section id="ai-insights">
+        <AIInsights insights={insights} regionRisks={regionRisks} />
+      </section>
+
+      {/* Footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="text-center pt-4 pb-8"
+      >
+        <p className="text-[10px] text-text-muted">
+          HerdGuard Admin Dashboard · Data refreshed in real-time
+        </p>
+        <p className="text-[10px] text-text-muted mt-0.5">
+          Department of Agriculture, Land Reform and Rural Development
+        </p>
+      </motion.div>
     </div>
   );
 }

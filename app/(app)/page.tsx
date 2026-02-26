@@ -296,7 +296,7 @@ export default function MapDashboard() {
   }
 
   return (
-    <div className="fixed inset-0 max-w-[430px] mx-auto">
+    <div className="fixed inset-0">
       {/* ---- Layer 1: Full-screen map (z-0) ---- */}
       <div className="absolute inset-0 z-0">
         <FarmMap

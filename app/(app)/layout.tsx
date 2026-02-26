@@ -26,7 +26,7 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="relative min-h-screen max-w-[430px] mx-auto bg-background">
+    <div className="relative min-h-screen bg-background">
       <OfflineBanner />
       <main className="pb-[calc(56px+env(safe-area-inset-bottom))]">
         {children}

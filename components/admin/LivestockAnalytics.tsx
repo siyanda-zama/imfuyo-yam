@@ -59,45 +59,48 @@ export default function LivestockAnalytics({ data }: LivestockAnalyticsProps) {
         <h2 className="font-display text-sm font-bold text-white">Livestock Analytics</h2>
       </div>
 
-      {/* Animal Type Distribution */}
-      <div className="bg-surface rounded-xl border border-primary/10 p-4 mb-3">
-        <h3 className="text-xs text-text-secondary font-medium mb-3">Distribution by Type</h3>
-        <div className="flex items-center gap-4">
-          <DonutChart
-            data={typeData}
-            size={140}
-            strokeWidth={20}
-            centerValue={String(data.totalAnimals)}
-            centerLabel="Total"
-          />
-          <div className="flex-1 space-y-1.5">
-            {typeData.map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-xs text-text-secondary flex-1">{item.label}</span>
-                <span className="text-xs font-semibold text-white">{item.value}</span>
-              </div>
-            ))}
+      <div className="space-y-3">
+        {/* Animal Type Distribution */}
+        <div className="bg-surface rounded-xl border border-primary/10 p-4">
+          <h3 className="text-xs text-text-secondary font-medium mb-3">Distribution by Type</h3>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <DonutChart
+              data={typeData}
+              size={140}
+              strokeWidth={20}
+              centerValue={String(data.totalAnimals)}
+              centerLabel="Total"
+            />
+            <div className="flex-1 space-y-1.5 w-full sm:w-auto">
+              {typeData.map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="text-xs text-text-secondary flex-1">{item.label}</span>
+                  <span className="text-xs font-semibold text-white">{item.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Status Breakdown */}
-      <div className="bg-surface rounded-xl border border-primary/10 p-4 mb-3">
-        <div className="flex items-center gap-2 mb-3">
-          <BarChart3 size={14} className="text-primary" />
-          <h3 className="text-xs text-text-secondary font-medium">Status Breakdown</h3>
-        </div>
-        <BarChart data={statusData} />
-      </div>
+        {/* Status + Battery side by side on larger screens */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-surface rounded-xl border border-primary/10 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 size={14} className="text-primary" />
+              <h3 className="text-xs text-text-secondary font-medium">Status Breakdown</h3>
+            </div>
+            <BarChart data={statusData} />
+          </div>
 
-      {/* Battery Health */}
-      <div className="bg-surface rounded-xl border border-primary/10 p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Battery size={14} className="text-primary" />
-          <h3 className="text-xs text-text-secondary font-medium">Tracker Battery Health</h3>
+          <div className="bg-surface rounded-xl border border-primary/10 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Battery size={14} className="text-primary" />
+              <h3 className="text-xs text-text-secondary font-medium">Tracker Battery Health</h3>
+            </div>
+            <VerticalBarChart data={batteryData} height={100} />
+          </div>
         </div>
-        <VerticalBarChart data={batteryData} height={100} />
       </div>
     </motion.section>
   );

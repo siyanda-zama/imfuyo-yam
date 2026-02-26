@@ -186,7 +186,7 @@ export default function HerdPage() {
 
   return (
     <PageTransition>
-      <div className="p-4 pt-6 pb-24">
+      <div className="p-4 pt-6 pb-24 max-w-5xl mx-auto">
         {/* Header */}
         <h1 className="font-bold text-2xl mb-4 text-primary">My Herd</h1>
 

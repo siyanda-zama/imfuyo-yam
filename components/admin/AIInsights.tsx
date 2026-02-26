@@ -46,7 +46,7 @@ export default function AIInsights({ insights, regionRisks }: AIInsightsProps) {
       </div>
 
       {insights && insights.length > 0 && (
-        <div className="space-y-2 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-6">
           {insights.map((insight, i) => {
             const config = INSIGHT_CONFIG[insight.type] || INSIGHT_CONFIG.info;
             const Icon = config.icon;
@@ -97,7 +97,7 @@ export default function AIInsights({ insights, regionRisks }: AIInsightsProps) {
             <MapPin size={16} className="text-info" />
             <h2 className="font-display text-sm font-bold text-white">Regional Risk Assessment</h2>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
             {regionRisks.map((region, i) => {
               const riskStyle = RISK_COLORS[region.riskLevel] || RISK_COLORS.low;
               return (
@@ -111,7 +111,7 @@ export default function AIInsights({ insights, regionRisks }: AIInsightsProps) {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-white truncate">{region.province}</span>
                     <span
-                      className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full"
+                      className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full shrink-0 ml-1"
                       style={{ color: riskStyle.text, backgroundColor: riskStyle.bg }}
                     >
                       {region.riskLevel}

@@ -32,7 +32,7 @@ const config: Config = {
         xl: '24px',
       },
       maxWidth: {
-        app: '430px',
+        content: '960px',
       },
     },
   },

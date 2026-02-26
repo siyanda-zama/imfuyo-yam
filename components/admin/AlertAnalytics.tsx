@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Bell, ShieldAlert, BatteryLow, Moon } from 'lucide-react';
+import { Bell, ShieldAlert } from 'lucide-react';
 import BarChart from './charts/BarChart';
 import ProgressRing from './charts/ProgressRing';
 import SparkLine from './charts/SparkLine';
@@ -49,8 +49,8 @@ export default function AlertAnalytics({ data }: AlertAnalyticsProps) {
         <h2 className="font-display text-sm font-bold text-white">Alert Analytics</h2>
       </div>
 
-      {/* Alert metrics row */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
+      {/* Metrics row — responsive grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
         <div className="bg-surface rounded-xl border border-primary/10 p-4 flex flex-col items-center">
           <ProgressRing
             value={data.resolutionRate}
@@ -73,15 +73,15 @@ export default function AlertAnalytics({ data }: AlertAnalyticsProps) {
             </span>
           </div>
         </div>
+
+        {/* Alert types breakdown */}
+        <div className="bg-surface rounded-xl border border-primary/10 p-4 col-span-2">
+          <h3 className="text-xs text-text-secondary font-medium mb-3">Alerts by Type</h3>
+          <BarChart data={typeBarData} />
+        </div>
       </div>
 
-      {/* Alert types breakdown */}
-      <div className="bg-surface rounded-xl border border-primary/10 p-4 mb-3">
-        <h3 className="text-xs text-text-secondary font-medium mb-3">Alerts by Type</h3>
-        <BarChart data={typeBarData} />
-      </div>
-
-      {/* 7-day trend */}
+      {/* 7-day trend — full width */}
       <div className="bg-surface rounded-xl border border-primary/10 p-4">
         <h3 className="text-xs text-text-secondary font-medium mb-3">7-Day Alert Trend</h3>
         <SparkLine data={trendValues} labels={trendLabels} color="#FF4757" height={70} />

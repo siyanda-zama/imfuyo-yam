@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
+import AdminShell from '@/components/admin/AdminShell';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,9 +15,5 @@ export default async function AdminLayout({
     redirect('/login');
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <main>{children}</main>
-    </div>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }

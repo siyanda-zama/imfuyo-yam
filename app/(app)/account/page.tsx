@@ -148,7 +148,7 @@ export default function AccountPage() {
 
   return (
     <PageTransition>
-      <div className="p-4 pt-6 pb-24">
+      <div className="p-4 pt-6 pb-24 max-w-2xl mx-auto">
         {/* ---- Profile header ---- */}
         <motion.div
           className="flex flex-col items-center mb-8"

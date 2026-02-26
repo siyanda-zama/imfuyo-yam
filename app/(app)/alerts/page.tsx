@@ -185,7 +185,7 @@ export default function AlertsPage() {
 
   return (
     <PageTransition>
-      <div className="p-4 pt-6 pb-24">
+      <div className="p-4 pt-6 pb-24 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-2xl font-bold text-white">Alerts</h1>

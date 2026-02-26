@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Award, MapPin, ChevronRight } from 'lucide-react';
+import { Award, MapPin } from 'lucide-react';
 import type { AdminFarm } from '@/lib/types';
 
 interface FarmPerformanceProps {
@@ -38,7 +38,7 @@ export default function FarmPerformance({ farms }: FarmPerformanceProps) {
         <h2 className="font-display text-sm font-bold text-white">Farm Performance</h2>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {sorted.map((farm, i) => (
           <motion.div
             key={farm.id}
@@ -47,21 +47,21 @@ export default function FarmPerformance({ farms }: FarmPerformanceProps) {
             transition={{ duration: 0.3, delay: 0.5 + i * 0.05 }}
             className="bg-surface rounded-xl border border-border/30 p-3 flex items-center gap-3"
           >
-            <span className="font-display text-lg font-bold text-primary w-7 text-center">
+            <span className="font-display text-lg font-bold text-primary w-7 text-center shrink-0">
               #{i + 1}
             </span>
 
             <div className="flex-1 min-w-0">
               <p className="font-display text-sm font-semibold text-white truncate">{farm.name}</p>
               <div className="flex items-center gap-1 mt-0.5">
-                <MapPin size={10} className="text-text-muted" />
+                <MapPin size={10} className="text-text-muted shrink-0" />
                 <span className="text-[10px] text-text-muted">{farm.province}</span>
                 <span className="text-[10px] text-text-muted mx-1">·</span>
-                <span className="text-[10px] text-text-secondary">{farm.owner.name}</span>
+                <span className="text-[10px] text-text-secondary truncate">{farm.owner.name}</span>
               </div>
             </div>
 
-            <div className="text-right mr-1">
+            <div className="text-right mr-1 shrink-0">
               <p className="text-sm font-semibold text-white">{farm.animalCount}</p>
               <p className="text-[10px] text-text-muted">animals</p>
             </div>
