@@ -8,14 +8,45 @@ const randomBetween = (min: number, max: number) => Math.floor(Math.random() * (
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3600000);
 const daysAgo = (d: number) => new Date(Date.now() - d * 86400000);
 
+// Phone numbers used by seed data — only these get cleaned up
+const SEED_PHONES = [
+  '0821234567', '0831234567', '0841234567', '0851234567',
+  '0861234567', '0871234567', '0881234567', '0800000001',
+];
+
 async function main() {
-  // Clean existing data in order
-  await prisma.fmdReport.deleteMany();
-  await prisma.alert.deleteMany();
-  await prisma.animal.deleteMany();
-  await prisma.userSettings.deleteMany();
-  await prisma.farm.deleteMany();
-  await prisma.user.deleteMany();
+  // Clean ONLY seed data — preserve real user accounts
+  const seedUsers = await prisma.user.findMany({
+    where: { phone: { in: SEED_PHONES } },
+    select: { id: true },
+  });
+  const seedUserIds = seedUsers.map((u) => u.id);
+
+  if (seedUserIds.length > 0) {
+    // Delete seed farms' related data
+    const seedFarms = await prisma.farm.findMany({
+      where: { ownerId: { in: seedUserIds } },
+      select: { id: true },
+    });
+    const seedFarmIds = seedFarms.map((f) => f.id);
+
+    if (seedFarmIds.length > 0) {
+      await prisma.fmdReport.deleteMany({ where: { farmId: { in: seedFarmIds } } });
+      const seedAnimals = await prisma.animal.findMany({
+        where: { farmId: { in: seedFarmIds } },
+        select: { id: true },
+      });
+      const seedAnimalIds = seedAnimals.map((a) => a.id);
+      if (seedAnimalIds.length > 0) {
+        await prisma.alert.deleteMany({ where: { animalId: { in: seedAnimalIds } } });
+      }
+      await prisma.animal.deleteMany({ where: { farmId: { in: seedFarmIds } } });
+      await prisma.farm.deleteMany({ where: { id: { in: seedFarmIds } } });
+    }
+
+    await prisma.userSettings.deleteMany({ where: { userId: { in: seedUserIds } } });
+    await prisma.user.deleteMany({ where: { id: { in: seedUserIds } } });
+  }
 
   const hashedPassword = await bcrypt.hash('demo123', 12);
   const adminPassword = await bcrypt.hash('admin123', 12);

@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+
 interface AuthFormProps {
   mode?: 'login' | 'register';
+  loginOnly?: boolean;
 }
 
 function FloatingInput({
@@ -38,9 +40,13 @@ function FloatingInput({
   );
 }
 
-export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps) {
+export default function AuthForm({ mode: initialMode = 'login', loginOnly = false }: AuthFormProps) {
   const router = useRouter();
-  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '';
+  const isAdminLogin = loginOnly || callbackUrl.includes('/admin');
+
+  const [mode, setMode] = useState<'login' | 'register'>(isAdminLogin ? 'login' : initialMode);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -73,6 +79,13 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
       }
     } catch {
       // Fall through to default redirect
+    }
+
+    // If this was an admin login attempt but user is not admin
+    if (isAdminLogin) {
+      setError('Access denied. Admin credentials required.');
+      setLoading(false);
+      return;
     }
 
     router.push('/');
@@ -116,8 +129,6 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
     }
   };
 
-  // Also handle registration redirect — new users are always FARMER role
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === 'login') {
@@ -129,35 +140,43 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
 
   return (
     <div className="w-full">
-      {/* Tab Switcher with sliding indicator */}
-      <div className="relative flex mb-6">
-        <button
-          type="button"
-          onClick={() => { setMode('login'); setError(''); }}
-          className={`flex-1 pb-3 text-center font-semibold transition-colors relative z-10 ${
-            mode === 'login' ? 'text-primary' : 'text-secondary'
-          }`}
-        >
-          Login
-        </button>
-        <button
-          type="button"
-          onClick={() => { setMode('register'); setError(''); }}
-          className={`flex-1 pb-3 text-center font-semibold transition-colors relative z-10 ${
-            mode === 'register' ? 'text-primary' : 'text-secondary'
-          }`}
-        >
-          Register
-        </button>
-        {/* Sliding indicator */}
-        <motion.div
-          className="absolute bottom-0 h-0.5 bg-primary rounded-full"
-          style={{ width: '50%' }}
-          animate={{ left: mode === 'login' ? '0%' : '50%' }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-border" />
-      </div>
+      {/* Tab Switcher — hidden for admin login */}
+      {!isAdminLogin ? (
+        <div className="relative flex mb-6">
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setError(''); }}
+            className={`flex-1 pb-3 text-center font-semibold transition-colors relative z-10 ${
+              mode === 'login' ? 'text-primary' : 'text-secondary'
+            }`}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode('register'); setError(''); }}
+            className={`flex-1 pb-3 text-center font-semibold transition-colors relative z-10 ${
+              mode === 'register' ? 'text-primary' : 'text-secondary'
+            }`}
+          >
+            Register
+          </button>
+          {/* Sliding indicator */}
+          <motion.div
+            className="absolute bottom-0 h-0.5 bg-primary rounded-full"
+            style={{ width: '50%' }}
+            animate={{ left: mode === 'login' ? '0%' : '50%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-border" />
+        </div>
+      ) : (
+        <div className="mb-6">
+          <h2 className="text-center font-bold text-lg text-white">Admin Login</h2>
+          <p className="text-center text-xs text-text-muted mt-1">Department of Agriculture, Land Reform</p>
+          <div className="mt-4 h-px bg-border" />
+        </div>
+      )}
 
       {/* Form */}
       <motion.form
@@ -167,7 +186,7 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        {mode === 'register' && (
+        {mode === 'register' && !isAdminLogin && (
           <FloatingInput
             label="Full Name"
             value={name}
@@ -192,7 +211,7 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
           required
         />
 
-        {mode === 'login' && (
+        {mode === 'login' && !isAdminLogin && (
           <p className="text-right text-sm text-secondary -mt-2">
             Forgot password?
           </p>
@@ -209,8 +228,8 @@ export default function AuthForm({ mode: initialMode = 'login' }: AuthFormProps)
           whileTap={{ scale: 0.98 }}
         >
           {loading
-            ? (mode === 'login' ? 'Signing in...' : 'Creating account...')
-            : (mode === 'login' ? 'Sign In' : 'Create Account')}
+            ? 'Signing in...'
+            : (isAdminLogin ? 'Sign In to Admin' : (mode === 'login' ? 'Sign In' : 'Create Account'))}
         </motion.button>
       </motion.form>
     </div>
