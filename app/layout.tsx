@@ -18,16 +18,22 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'HerdGuard',
   },
+  icons: {
+    icon: '/favicon-32.png',
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     title: 'HerdGuard — Smart Livestock Protection',
     description: 'Smart GPS livestock tracking and protection for South African farmers.',
     siteName: 'HerdGuard',
     type: 'website',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'HerdGuard' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'HerdGuard — Smart Livestock Protection',
     description: 'Smart GPS livestock tracking and protection for South African farmers.',
+    images: ['/og-image.png'],
   },
 };
 
