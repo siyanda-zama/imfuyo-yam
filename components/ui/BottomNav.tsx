@@ -33,7 +33,7 @@ export default function BottomNav() {
             }`}
           >
             <Icon size={24} />
-            <span className="text-xs">{tab.label}</span>
+            <span className="text-xs font-display">{tab.label}</span>
           </Link>
         );
       })}

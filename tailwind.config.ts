@@ -22,6 +22,7 @@ const config: Config = {
         info: '#3B82F6',
       },
       fontFamily: {
+        display: ['var(--font-jakarta)', '"Plus Jakarta Sans"', 'sans-serif'],
         sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
       },
       borderRadius: {

@@ -16,6 +16,7 @@ import {
   LogOut,
   User,
   Check,
+  LayoutDashboard,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -158,7 +159,7 @@ export default function AccountPage() {
           <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mb-3">
             <span className="text-background text-3xl font-bold">{userInitial}</span>
           </div>
-          <h1 className="font-bold text-xl text-white">
+          <h1 className="font-display font-bold text-xl text-white">
             {user?.name || "Farmer"}
           </h1>
           <p className="text-secondary text-sm mt-0.5">
@@ -192,7 +193,7 @@ export default function AccountPage() {
                 <Home size={20} className="text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-white">{farm.name}</h3>
+                <h3 className="font-display font-semibold text-white">{farm.name}</h3>
                 <p className="text-xs text-secondary">
                   {farm.latitude.toFixed(4)}, {farm.longitude.toFixed(4)}
                 </p>
@@ -219,7 +220,7 @@ export default function AccountPage() {
           transition={{ duration: 0.35, delay: 0.15 }}
         >
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-white">Subscription Plan</h3>
+            <h3 className="font-display font-semibold text-white">Subscription Plan</h3>
             <span
               className={`rounded-full px-3 py-1 text-xs font-bold ${
                 plan === "PRO"
@@ -254,7 +255,7 @@ export default function AccountPage() {
               <div className="relative bg-surface m-[1px] rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-2">
                   <Crown size={18} className="text-primary" />
-                  <h4 className="font-bold text-primary">
+                  <h4 className="font-display font-bold text-primary">
                     Upgrade to PRO
                   </h4>
                 </div>
@@ -277,6 +278,29 @@ export default function AccountPage() {
               </div>
             </div>
           )}
+        </motion.div>
+
+        {/* ---- Admin Dashboard ---- */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.18 }}
+          className="mb-4"
+        >
+          <button
+            type="button"
+            onClick={() => router.push("/admin")}
+            className="w-full bg-surface rounded-xl border border-primary/30 p-4 flex items-center gap-3 active:scale-[0.98] transition-transform"
+          >
+            <div className="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center">
+              <LayoutDashboard size={20} className="text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold text-white">Admin Dashboard</p>
+              <p className="text-[11px] text-text-secondary">National livestock overview</p>
+            </div>
+            <ChevronRight size={16} className="text-secondary" />
+          </button>
         </motion.div>
 
         {/* ---- Settings section ---- */}

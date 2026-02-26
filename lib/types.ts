@@ -30,5 +30,48 @@ export interface Alert {
   type: AlertType;
   message: string;
   resolved: boolean;
+  resolvedAt: string | null;
   createdAt: string;
+}
+
+// Admin Dashboard Types
+export interface AdminOverview {
+  totalFarms: number;
+  totalAnimals: number;
+  totalFarmers: number;
+  activeAlerts: number;
+  estimatedLivestockValue: number;
+  animalsByType: Record<string, number>;
+  animalsByStatus: Record<string, number>;
+  batteryDistribution: { healthy: number; medium: number; low: number; critical: number };
+}
+
+export interface AdminFarm extends Farm {
+  owner: { name: string; phone: string; plan: string };
+  animalCount: number;
+  province: string;
+  alertCount: number;
+  healthScore: number;
+}
+
+export interface AlertAnalytics {
+  byType: Record<string, number>;
+  resolutionRate: number;
+  avgResolutionTimeHours: number;
+  recentTrend: { date: string; count: number }[];
+}
+
+export interface AIInsight {
+  type: 'warning' | 'info' | 'success' | 'danger';
+  title: string;
+  description: string;
+  metric?: string;
+}
+
+export interface RegionRisk {
+  province: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  alertCount: number;
+  farmCount: number;
+  animalCount: number;
 }
