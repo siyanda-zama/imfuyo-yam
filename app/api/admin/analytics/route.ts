@@ -2,15 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-function getProvince(lat: number, lng: number): string {
-  if (lat < -30 && lng > 27 && lng < 30) return 'Eastern Cape';
-  if (lat > -30 && lat < -27 && lng > 29 && lng < 33) return 'KwaZulu-Natal';
-  if (lat > -31 && lat < -28 && lng > 24 && lng < 28) return 'Free State';
-  if (lat > -27 && lat < -24 && lng > 29 && lng < 32) return 'Mpumalanga';
-  if (lat > -25 && lng > 28 && lng < 31) return 'Limpopo';
-  if (lat > -29 && lat < -27 && lng > 29 && lng < 31) return 'KwaZulu-Natal';
-  return 'Other';
-}
+import { getProvince } from '@/lib/provinces';
 
 function countInRange(alerts: { createdAt: Date }[], daysBack: number, daysEnd: number = 0) {
   const now = Date.now();

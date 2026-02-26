@@ -1,17 +1,39 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { searchParams } = new URL(req.url);
+  const isList = searchParams.get('list') === 'true';
+
   const allAlerts = await prisma.alert.findMany({
     orderBy: { createdAt: 'desc' },
     include: { animal: { include: { farm: true } } },
   });
+
+  // If list mode, return individual alerts
+  if (isList) {
+    return NextResponse.json({
+      alerts: allAlerts.map((a) => ({
+        id: a.id,
+        type: a.type,
+        message: a.message,
+        resolved: a.resolved,
+        resolvedAt: a.resolvedAt,
+        createdAt: a.createdAt,
+        animal: {
+          name: a.animal.name,
+          tagId: a.animal.tagId,
+          farm: { name: a.animal.farm.name },
+        },
+      })),
+    });
+  }
 
   // By type
   const byType: Record<string, number> = {};

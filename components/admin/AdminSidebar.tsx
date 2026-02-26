@@ -1,17 +1,17 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield,
   LayoutDashboard,
   MapPin,
+  Activity,
   Bell,
   Brain,
-  Award,
+  Bug,
   ArrowLeft,
   X,
-  Activity,
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -20,23 +20,26 @@ interface AdminSidebarProps {
 }
 
 const NAV_ITEMS = [
-  { label: 'Overview', icon: LayoutDashboard, section: 'overview' },
-  { label: 'Regional Map', icon: MapPin, section: 'regional-map' },
-  { label: 'Livestock', icon: Activity, section: 'livestock' },
-  { label: 'Alerts', icon: Bell, section: 'alerts' },
-  { label: 'Farm Rankings', icon: Award, section: 'farms' },
-  { label: 'AI Analysis', icon: Brain, section: 'ai-insights' },
+  { label: 'Overview', icon: LayoutDashboard, href: '/admin' },
+  { label: 'Farms', icon: MapPin, href: '/admin/farms' },
+  { label: 'Livestock', icon: Activity, href: '/admin/livestock' },
+  { label: 'Alerts', icon: Bell, href: '/admin/alerts' },
+  { label: 'Analytics', icon: Brain, href: '/admin/analytics' },
+  { label: 'FMD Tracker', icon: Bug, href: '/admin/fmd', danger: true },
 ];
 
 export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
-  const scrollTo = (section: string) => {
-    const el = document.getElementById(section);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  const navigate = (href: string) => {
+    router.push(href);
     onClose();
+  };
+
+  const isActive = (href: string) => {
+    if (href === '/admin') return pathname === '/admin';
+    return pathname.startsWith(href);
   };
 
   const sidebarContent = (
@@ -61,14 +64,31 @@ export default function AdminSidebar({ open, onClose }: AdminSidebarProps) {
         </p>
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
+          const active = isActive(item.href);
           return (
             <button
-              key={item.section}
-              onClick={() => scrollTo(item.section)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-text-secondary hover:text-white hover:bg-surface-light transition-colors group"
+              key={item.href}
+              onClick={() => navigate(item.href)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors group ${
+                active
+                  ? 'bg-primary/10 text-white'
+                  : 'text-text-secondary hover:text-white hover:bg-surface-light'
+              }`}
             >
-              <Icon size={18} className="text-text-muted group-hover:text-primary transition-colors" />
-              <span className="text-sm font-medium">{item.label}</span>
+              <Icon
+                size={18}
+                className={`transition-colors ${
+                  active
+                    ? item.danger ? 'text-danger' : 'text-primary'
+                    : item.danger ? 'text-danger/60 group-hover:text-danger' : 'text-text-muted group-hover:text-primary'
+                }`}
+              />
+              <span className="text-sm font-medium flex-1">{item.label}</span>
+              {item.danger && (
+                <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-danger/15 text-danger">
+                  Alert
+                </span>
+              )}
             </button>
           );
         })}

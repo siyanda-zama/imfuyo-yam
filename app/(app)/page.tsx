@@ -15,7 +15,7 @@ import { isOutsideBoundary } from "@/lib/geo";
 import { useOnlineStatus } from "@/lib/useOnlineStatus";
 import { ANIMAL_ICONS, ANIMAL_LABELS } from "@/lib/icons";
 import { createElement } from "react";
-import { AlertTriangle, Menu, X, Locate, Layers } from "lucide-react";
+import { AlertTriangle, Menu, X, Locate, Layers, Bug } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -60,6 +60,7 @@ export default function MapDashboard() {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
   const [alertBanner, setAlertBanner] = useState<string | null>(null);
+  const [fmdStatus, setFmdStatus] = useState<{ activeReports: number; provincesAffected: number; totalProvinces: number } | null>(null);
   const isOnline = useOnlineStatus();
 
   /* ---------- Fetch farms + animals on mount ---------- */
@@ -132,6 +133,14 @@ export default function MapDashboard() {
       }
     }
     loadSession();
+  }, []);
+
+  /* ---------- Fetch FMD status ---------- */
+  useEffect(() => {
+    fetch("/api/fmd/status")
+      .then((r) => r.json())
+      .then(setFmdStatus)
+      .catch(() => {});
   }, []);
 
   /* ---------- Track which animals already triggered alerts ---------- */
@@ -342,6 +351,22 @@ export default function MapDashboard() {
         <div className="absolute top-[calc(env(safe-area-inset-top,12px)+60px)] right-5 z-10 flex items-center gap-1.5 bg-warning/90 backdrop-blur rounded-full px-2.5 py-1 shadow-sm">
           <div className="w-2 h-2 rounded-full bg-background" />
           <span className="text-xs font-semibold text-background">OFFLINE</span>
+        </div>
+      )}
+
+      {/* ---- FMD Warning Banner (z-14) ---- */}
+      {fmdStatus && fmdStatus.activeReports > 0 && (
+        <div className="absolute top-[calc(env(safe-area-inset-top,12px)+64px)] left-4 right-4 z-[14]">
+          <a
+            href="/herd/fmd-report"
+            className="bg-danger/90 backdrop-blur text-white rounded-xl px-4 py-2.5 shadow-lg flex items-center gap-2 no-underline"
+          >
+            <Bug size={16} className="shrink-0" />
+            <span className="text-xs font-semibold flex-1">
+              FMD Alert: {fmdStatus.provincesAffected}/{fmdStatus.totalProvinces} provinces affected
+            </span>
+            <span className="text-[10px] opacity-80">Report</span>
+          </a>
         </div>
       )}
 

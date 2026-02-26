@@ -75,3 +75,53 @@ export interface RegionRisk {
   farmCount: number;
   animalCount: number;
 }
+
+// ─── FMD Types ─────────────────────────────────────────
+export type FmdSeverity = 'SUSPECTED' | 'CONFIRMED' | 'RECOVERED' | 'CLEARED';
+export type FmdSusceptibleType = 'COW' | 'SHEEP' | 'GOAT' | 'PIG';
+
+export interface FmdReport {
+  id: string;
+  farmId: string;
+  farm: { name: string; latitude: number; longitude: number };
+  reportedById: string;
+  reportedBy: { name: string; phone: string };
+  animalId: string | null;
+  animal: { name: string; tagId: string } | null;
+  animalType: FmdSusceptibleType;
+  affectedCount: number;
+  severity: FmdSeverity;
+  symptoms: string[];
+  notes: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  vetNotified: boolean;
+  vetName: string | null;
+  quarantineStarted: boolean;
+  reportedAt: string;
+  updatedAt: string;
+  resolvedAt: string | null;
+}
+
+export interface FmdOverview {
+  totalReports: number;
+  confirmed: number;
+  suspected: number;
+  recovered: number;
+  cleared: number;
+  quarantinedFarms: number;
+  provincesAffected: number;
+  totalAffectedAnimals: number;
+}
+
+export interface FmdProvinceStatus {
+  province: string;
+  totalReports: number;
+  confirmed: number;
+  suspected: number;
+  recovered: number;
+  cleared: number;
+  affectedFarms: number;
+  affectedAnimals: number;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+}

@@ -16,8 +16,9 @@ model User {
   plan      String   @default("BASIC") // BASIC | PRO
   role      String   @default("FARMER") // FARMER | ADMIN
   createdAt DateTime @default(now())
-  farms     Farm[]
-  settings  UserSettings?
+  farms      Farm[]
+  settings   UserSettings?
+  fmdReports FmdReport[]
 }
 
 model Farm {
@@ -30,6 +31,7 @@ model Farm {
   ownerId      String
   owner        User     @relation(fields: [ownerId], references: [id])
   animals      Animal[]
+  fmdReports   FmdReport[]
   createdAt    DateTime @default(now())
 }
 
@@ -47,6 +49,7 @@ model Animal {
   lastSeenAt DateTime?
   createdAt  DateTime  @default(now())
   alerts     Alert[]
+  fmdReports FmdReport[]
 }
 
 model Alert {
@@ -72,4 +75,27 @@ model UserSettings {
   mapStyle              String  @default("satellite") // satellite | streets | dark
   distanceUnit          String  @default("km") // km | miles
   language              String  @default("en") // en | zu | xh | af
+}
+
+model FmdReport {
+  id                String    @id @default(cuid())
+  farmId            String
+  farm              Farm      @relation(fields: [farmId], references: [id])
+  reportedById      String
+  reportedBy        User      @relation(fields: [reportedById], references: [id])
+  animalId          String?
+  animal            Animal?   @relation(fields: [animalId], references: [id])
+  animalType        String    // COW | SHEEP | GOAT | PIG
+  affectedCount     Int       @default(1)
+  severity          String    @default("SUSPECTED") // SUSPECTED | CONFIRMED | RECOVERED | CLEARED
+  symptoms          String    @default("[]") // JSON array of symptom keys
+  notes             String?
+  latitude          Float?
+  longitude         Float?
+  vetNotified       Boolean   @default(false)
+  vetName           String?
+  quarantineStarted Boolean   @default(false)
+  reportedAt        DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  resolvedAt        DateTime?
 }

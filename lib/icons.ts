@@ -48,3 +48,12 @@ export const STATUS_COLORS = {
   WARNING: "#FFB020",
   ALERT: "#FF4757",
 } as const;
+
+export type FmdSeverity = "SUSPECTED" | "CONFIRMED" | "RECOVERED" | "CLEARED";
+
+export const FMD_SEVERITY_COLORS: Record<FmdSeverity, { text: string; bg: string }> = {
+  SUSPECTED: { text: "#FFB020", bg: "rgba(255,176,32,0.15)" },
+  CONFIRMED: { text: "#FF4757", bg: "rgba(255,71,87,0.15)" },
+  RECOVERED: { text: "#00C896", bg: "rgba(0,200,150,0.15)" },
+  CLEARED: { text: "#3B82F6", bg: "rgba(59,130,246,0.15)" },
+};

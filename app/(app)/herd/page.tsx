@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, Bug } from "lucide-react";
 import Image from "next/image";
 import AnimalCard, { type Animal } from "@/components/ui/AnimalCard";
 import PageTransition from "@/components/ui/PageTransition";
@@ -187,6 +187,23 @@ export default function HerdPage() {
   return (
     <PageTransition>
       <div className="p-4 pt-6 pb-24 max-w-5xl mx-auto">
+        {/* FMD Warning Card */}
+        <a
+          href="/herd/fmd-report"
+          className="block bg-danger/10 border border-danger/30 rounded-xl p-4 mb-4 no-underline"
+        >
+          <div className="flex items-center gap-3">
+            <Bug size={20} className="text-danger shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-display text-sm font-bold text-danger">FMD Alert Active</p>
+              <p className="text-[11px] text-text-secondary mt-0.5">
+                National State of Disaster. Report suspected cases immediately.
+              </p>
+            </div>
+            <span className="text-xs font-semibold text-danger shrink-0">Report</span>
+          </div>
+        </a>
+
         {/* Header */}
         <h1 className="font-bold text-2xl mb-4 text-primary">My Herd</h1>
 

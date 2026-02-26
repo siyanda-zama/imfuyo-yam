@@ -10,6 +10,7 @@ const daysAgo = (d: number) => new Date(Date.now() - d * 86400000);
 
 async function main() {
   // Clean existing data in order
+  await prisma.fmdReport.deleteMany();
   await prisma.alert.deleteMany();
   await prisma.animal.deleteMany();
   await prisma.userSettings.deleteMany();
@@ -246,6 +247,82 @@ async function main() {
     });
   }
 
+  // ─── FMD Reports ────────────────────────────────────────
+  type FmdSeed = {
+    farmIdx: number;
+    reporterIdx: number;
+    animalTag?: string;
+    animalType: string;
+    affectedCount: number;
+    severity: string;
+    symptoms: string[];
+    notes: string;
+    vetNotified: boolean;
+    vetName?: string;
+    quarantineStarted: boolean;
+    daysAgo: number;
+    resolvedDaysAgo?: number;
+  };
+
+  const fmdData: FmdSeed[] = [
+    // Eastern Cape — 4 reports
+    { farmIdx: 0, reporterIdx: 0, animalTag: 'TAG-001', animalType: 'COW', affectedCount: 3, severity: 'CONFIRMED', symptoms: ['blisters_mouth', 'drooling', 'fever', 'lameness'], notes: 'Severe blistering on 3 cows. Vet confirmed FMD SAT-2 strain.', vetNotified: true, vetName: 'Dr. Nkosi', quarantineStarted: true, daysAgo: 8 },
+    { farmIdx: 0, reporterIdx: 0, animalType: 'SHEEP', affectedCount: 2, severity: 'SUSPECTED', symptoms: ['lameness', 'drooling', 'depression'], notes: 'Two sheep showing lameness and depression. Monitoring closely.', vetNotified: true, vetName: 'Dr. Nkosi', quarantineStarted: true, daysAgo: 5 },
+    { farmIdx: 5, reporterIdx: 5, animalType: 'COW', affectedCount: 1, severity: 'RECOVERED', symptoms: ['blisters_mouth', 'fever', 'weight_loss'], notes: 'Single cow recovered after 14 days. Lesions healed.', vetNotified: true, vetName: 'Dr. Mthembu', quarantineStarted: true, daysAgo: 21, resolvedDaysAgo: 3 },
+    { farmIdx: 5, reporterIdx: 5, animalType: 'GOAT', affectedCount: 1, severity: 'CLEARED', symptoms: ['lameness'], notes: 'Lameness was due to hoof injury, not FMD. Cleared by vet.', vetNotified: true, vetName: 'Dr. Mthembu', quarantineStarted: false, daysAgo: 14, resolvedDaysAgo: 10 },
+
+    // KwaZulu-Natal — 4 reports
+    { farmIdx: 1, reporterIdx: 1, animalTag: 'TAG-009', animalType: 'COW', affectedCount: 5, severity: 'CONFIRMED', symptoms: ['blisters_mouth', 'blisters_hooves', 'drooling', 'fever', 'milk_drop'], notes: '5 dairy cows confirmed FMD. Milk production dropped 60%. Movement ban in effect.', vetNotified: true, vetName: 'Dr. Govender', quarantineStarted: true, daysAgo: 12 },
+    { farmIdx: 1, reporterIdx: 1, animalType: 'SHEEP', affectedCount: 3, severity: 'SUSPECTED', symptoms: ['lameness', 'blisters_hooves', 'depression'], notes: '3 sheep limping badly. Suspected spread from cattle.', vetNotified: true, vetName: 'Dr. Govender', quarantineStarted: true, daysAgo: 9 },
+    { farmIdx: 6, reporterIdx: 6, animalTag: 'TAG-065', animalType: 'PIG', affectedCount: 2, severity: 'CONFIRMED', symptoms: ['blisters_hooves', 'lameness', 'fever', 'young_mortality'], notes: '2 pigs confirmed. One piglet died. Quarantine enforced.', vetNotified: true, vetName: 'Dr. Pillay', quarantineStarted: true, daysAgo: 6 },
+    { farmIdx: 6, reporterIdx: 6, animalType: 'COW', affectedCount: 1, severity: 'SUSPECTED', symptoms: ['drooling', 'fever'], notes: 'One cow with excessive drooling and fever. Awaiting lab results.', vetNotified: true, vetName: 'Dr. Pillay', quarantineStarted: true, daysAgo: 3 },
+
+    // Free State — 3 reports
+    { farmIdx: 2, reporterIdx: 2, animalTag: 'TAG-021', animalType: 'COW', affectedCount: 4, severity: 'CONFIRMED', symptoms: ['blisters_mouth', 'blisters_teats', 'drooling', 'fever', 'milk_drop', 'weight_loss'], notes: '4 cows with severe lesions on mouth and teats. Herd quarantined.', vetNotified: true, vetName: 'Dr. van Wyk', quarantineStarted: true, daysAgo: 15 },
+    { farmIdx: 2, reporterIdx: 2, animalType: 'PIG', affectedCount: 2, severity: 'RECOVERED', symptoms: ['blisters_hooves', 'lameness', 'fever'], notes: 'Both pigs recovered. No new cases in 10 days.', vetNotified: true, vetName: 'Dr. van Wyk', quarantineStarted: true, daysAgo: 20, resolvedDaysAgo: 2 },
+    { farmIdx: 2, reporterIdx: 2, animalType: 'SHEEP', affectedCount: 1, severity: 'SUSPECTED', symptoms: ['lameness', 'depression'], notes: 'Lone sheep showing signs. Isolated for observation.', vetNotified: false, quarantineStarted: false, daysAgo: 2 },
+
+    // Mpumalanga — 3 reports
+    { farmIdx: 3, reporterIdx: 3, animalTag: 'TAG-035', animalType: 'COW', affectedCount: 2, severity: 'CONFIRMED', symptoms: ['blisters_mouth', 'drooling', 'fever', 'lameness'], notes: 'Two cows confirmed positive. Adjacent farms notified.', vetNotified: true, vetName: 'Dr. Mashaba', quarantineStarted: true, daysAgo: 10 },
+    { farmIdx: 3, reporterIdx: 3, animalType: 'GOAT', affectedCount: 3, severity: 'SUSPECTED', symptoms: ['blisters_hooves', 'lameness', 'depression', 'weight_loss'], notes: '3 goats with hoof blisters. Suspect cross-contamination from cattle.', vetNotified: true, vetName: 'Dr. Mashaba', quarantineStarted: true, daysAgo: 7 },
+    { farmIdx: 3, reporterIdx: 3, animalType: 'SHEEP', affectedCount: 1, severity: 'CLEARED', symptoms: ['lameness'], notes: 'Lab results negative. Lameness was mechanical injury.', vetNotified: true, vetName: 'Dr. Mashaba', quarantineStarted: false, daysAgo: 18, resolvedDaysAgo: 12 },
+
+    // Limpopo — 3 reports
+    { farmIdx: 4, reporterIdx: 4, animalTag: 'TAG-045', animalType: 'COW', affectedCount: 2, severity: 'SUSPECTED', symptoms: ['blisters_mouth', 'drooling', 'fever'], notes: 'Two cows drooling excessively with mouth lesions. Samples sent to Onderstepoort.', vetNotified: true, vetName: 'Dr. Mokoena', quarantineStarted: true, daysAgo: 4 },
+    { farmIdx: 4, reporterIdx: 4, animalType: 'GOAT', affectedCount: 4, severity: 'CONFIRMED', symptoms: ['blisters_hooves', 'blisters_mouth', 'lameness', 'fever', 'weight_loss'], notes: '4 goats confirmed FMD. Spreading fast in herd. Emergency vaccination requested.', vetNotified: true, vetName: 'Dr. Mokoena', quarantineStarted: true, daysAgo: 7 },
+    { farmIdx: 4, reporterIdx: 4, animalType: 'PIG', affectedCount: 1, severity: 'SUSPECTED', symptoms: ['lameness', 'fever', 'depression'], notes: 'One pig showing early signs. Isolated immediately.', vetNotified: false, quarantineStarted: true, daysAgo: 1 },
+  ];
+
+  let fmdCount = 0;
+  for (const f of fmdData) {
+    const farm = farms[f.farmIdx];
+    const farmCoords = farmData[f.farmIdx];
+    const animalRecord = f.animalTag ? byTag(f.animalTag) : null;
+    const reportedAt = daysAgo(f.daysAgo);
+    const resolvedAt = f.resolvedDaysAgo !== undefined ? daysAgo(f.resolvedDaysAgo) : null;
+
+    await prisma.fmdReport.create({
+      data: {
+        farmId: farm.id,
+        reportedById: users[f.reporterIdx].id,
+        animalId: animalRecord?.id ?? null,
+        animalType: f.animalType,
+        affectedCount: f.affectedCount,
+        severity: f.severity,
+        symptoms: JSON.stringify(f.symptoms),
+        notes: f.notes,
+        latitude: farmCoords.lat + offset(0.01),
+        longitude: farmCoords.lng + offset(0.01),
+        vetNotified: f.vetNotified,
+        vetName: f.vetName ?? null,
+        quarantineStarted: f.quarantineStarted,
+        reportedAt,
+        resolvedAt,
+      },
+    });
+    fmdCount++;
+  }
+
   // ─── User Settings ───────────────────────────────────────
   for (const user of users) {
     await prisma.userSettings.create({
@@ -258,6 +335,7 @@ async function main() {
   console.log(`Farms: ${farms.length}`);
   console.log(`Animals: ${animals.length}`);
   console.log(`Alerts: ${alertData.length}`);
+  console.log(`FMD Reports: ${fmdCount}`);
   console.log(`\nAdmin login: 0800000001 / admin123`);
   console.log(`Farmer login: 0821234567 / demo123`);
 }
