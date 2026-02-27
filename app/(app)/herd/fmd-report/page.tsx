@@ -76,7 +76,7 @@ export default function FmdReportPage() {
     setSelectedAnimalIds(new Set());
     setAnimalSearch('');
 
-    fetch(`/api/animals?farmId=${farmId}`)
+    fetch(`/api/animals?farmId=${farmId}&excludeFmdActive=1`)
       .then((r) => r.json())
       .then((all: Animal[]) => {
         setAnimals(all.filter((a) => a.type === animalType));

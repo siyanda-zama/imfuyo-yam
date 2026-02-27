@@ -11,11 +11,21 @@ export async function GET(request: NextRequest) {
 
   // Optional farmId filter for multi-farm support
   const farmId = request.nextUrl.searchParams.get('farmId');
+  const excludeFmdActive = request.nextUrl.searchParams.get('excludeFmdActive');
 
   const animals = await prisma.animal.findMany({
     where: {
       farm: { ownerId: userId },
       ...(farmId && { farmId }),
+      // Exclude animals that already have an active (unresolved) FMD report
+      ...(excludeFmdActive === '1' && {
+        fmdReports: {
+          none: {
+            resolvedAt: null,
+            severity: { in: ['SUSPECTED', 'CONFIRMED'] },
+          },
+        },
+      }),
     },
     include: { farm: true },
   });
