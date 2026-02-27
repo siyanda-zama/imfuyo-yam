@@ -10,6 +10,10 @@ import {
   Tag,
   MapPin,
   AlertTriangle,
+  Pencil,
+  Trash2,
+  X,
+  Check,
 } from "lucide-react";
 import { ANIMAL_ICONS, ANIMAL_LABELS, type AnimalType } from "@/lib/icons";
 import PageTransition from "@/components/ui/PageTransition";
@@ -38,6 +42,8 @@ interface AnimalDetail {
   }[];
 }
 
+const ANIMAL_TYPES: AnimalType[] = ["COW", "SHEEP", "GOAT", "CHICKEN", "HORSE", "PIG"];
+
 const statusClasses: Record<string, string> = {
   SAFE: "bg-primary/15 text-primary",
   WARNING: "bg-warning/15 text-warning",
@@ -65,6 +71,18 @@ export default function AnimalDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Edit state
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editTagId, setEditTagId] = useState("");
+  const [editType, setEditType] = useState<AnimalType>("COW");
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  // Delete state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     async function load() {
       try {
@@ -81,6 +99,55 @@ export default function AnimalDetailPage() {
     }
     load();
   }, [params.id]);
+
+  const startEditing = () => {
+    if (!animal) return;
+    setEditName(animal.name);
+    setEditTagId(animal.tagId);
+    setEditType(animal.type);
+    setEditError("");
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!editName.trim() || !editTagId.trim()) {
+      setEditError("Name and Tag ID are required.");
+      return;
+    }
+    setSaving(true);
+    setEditError("");
+    try {
+      const res = await fetch(`/api/animals/${params.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName.trim(), tagId: editTagId.trim(), type: editType }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update");
+      }
+      const updated = await res.json();
+      setAnimal((prev) => prev ? { ...prev, name: updated.name, tagId: updated.tagId, type: updated.type } : prev);
+      setEditing(false);
+    } catch (err: any) {
+      setEditError(err.message || "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/animals/${params.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      router.replace("/herd");
+    } catch (err) {
+      console.error(err);
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -131,6 +198,20 @@ export default function AnimalDetailPage() {
             <ArrowLeft size={20} className="text-secondary" />
           </button>
           <h1 className="font-bold text-xl text-white flex-1">Animal Detail</h1>
+          <button
+            onClick={startEditing}
+            className="w-10 h-10 rounded-full bg-surface flex items-center justify-center"
+            aria-label="Edit animal"
+          >
+            <Pencil size={16} className="text-primary" />
+          </button>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-10 h-10 rounded-full bg-surface flex items-center justify-center"
+            aria-label="Delete animal"
+          >
+            <Trash2 size={16} className="text-danger" />
+          </button>
         </div>
 
         {/* Animal card */}
@@ -255,6 +336,109 @@ export default function AnimalDetailPage() {
           >
             Report Theft
           </motion.button>
+        )}
+
+        {/* Edit Modal */}
+        {editing && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setEditing(false); }}
+          >
+            <div className="bg-surface rounded-2xl p-6 w-full max-w-[380px] shadow-xl">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-bold text-xl text-primary">Edit Animal</h2>
+                <button onClick={() => setEditing(false)} className="text-secondary">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full bg-background rounded-xl px-4 py-2.5 text-sm text-primary border border-border outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1">Tag ID</label>
+                  <input
+                    type="text"
+                    value={editTagId}
+                    onChange={(e) => setEditTagId(e.target.value)}
+                    className="w-full bg-background rounded-xl px-4 py-2.5 text-sm text-primary border border-border outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1">Type</label>
+                  <select
+                    value={editType}
+                    onChange={(e) => setEditType(e.target.value as AnimalType)}
+                    className="w-full bg-background rounded-xl px-4 py-2.5 text-sm text-primary border border-border outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 appearance-none"
+                  >
+                    {ANIMAL_TYPES.map((type) => (
+                      <option key={type} value={type}>{ANIMAL_LABELS[type]}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {editError && <p className="text-danger text-sm">{editError}</p>}
+
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="w-full bg-primary text-background font-semibold py-3 rounded-xl active:scale-[0.98] transition-transform disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <><Check size={16} /> Save Changes</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteConfirm(false); }}
+          >
+            <div className="bg-surface rounded-2xl p-6 w-full max-w-[340px] shadow-xl text-center">
+              <div className="w-14 h-14 bg-danger/15 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 size={24} className="text-danger" />
+              </div>
+              <h2 className="font-bold text-lg text-white mb-2">Delete {animal.name}?</h2>
+              <p className="text-sm text-secondary mb-6">
+                This will permanently remove this animal and all its alerts. This cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 bg-surface-light text-secondary font-semibold py-3 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 bg-danger text-white font-semibold py-3 rounded-xl disabled:opacity-50 flex items-center justify-center"
+                >
+                  {deleting ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </PageTransition>

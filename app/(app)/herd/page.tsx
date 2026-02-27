@@ -55,10 +55,20 @@ export default function HerdPage() {
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
+  /* ---------- Active farm ---------- */
+  const getActiveFarmId = useCallback(() => {
+    const cookies = document.cookie.split(";").map((c) => c.trim());
+    const stored = cookies.find((c) => c.startsWith("activeFarmId="));
+    return stored?.split("=")[1] || "";
+  }, []);
+
+  const [activeFarmId, setActiveFarmId] = useState("");
+
   /* ---------- Fetch ---------- */
-  const fetchAnimals = useCallback(async () => {
+  const fetchAnimals = useCallback(async (farmId?: string) => {
     try {
-      const res = await fetch("/api/animals");
+      const url = farmId ? `/api/animals?farmId=${farmId}` : "/api/animals";
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch animals");
       const data: Animal[] = await res.json();
       setAnimals(data);
@@ -72,16 +82,33 @@ export default function HerdPage() {
 
   useEffect(() => {
     async function load() {
-      const [, farmRes] = await Promise.all([
-        fetchAnimals(),
-        fetch("/api/farms"),
-      ]);
+      const farmRes = await fetch("/api/farms");
       if (farmRes.ok) {
         const farmData = await farmRes.json();
         setFarms(farmData);
+
+        const storedId = getActiveFarmId();
+        const active = farmData.find((f: Farm) => f.id === storedId) ?? farmData[0];
+        if (active) {
+          setActiveFarmId(active.id);
+          document.cookie = `activeFarmId=${active.id};path=/;max-age=31536000`;
+          await fetchAnimals(active.id);
+        } else {
+          await fetchAnimals();
+        }
+      } else {
+        await fetchAnimals();
       }
     }
     load();
+  }, [fetchAnimals, getActiveFarmId]);
+
+  // Re-fetch when activeFarmId changes (farm switch)
+  const handleFarmSwitch = useCallback((farmId: string) => {
+    setActiveFarmId(farmId);
+    document.cookie = `activeFarmId=${farmId};path=/;max-age=31536000`;
+    setLoading(true);
+    fetchAnimals(farmId);
   }, [fetchAnimals]);
 
   /* ---------- Count per type ---------- */
@@ -136,10 +163,7 @@ export default function HerdPage() {
     setFormError("");
 
     try {
-      // Use active farm from cookie, or fall back to first farm
-      const cookies = document.cookie.split(";").map((c) => c.trim());
-      const stored = cookies.find((c) => c.startsWith("activeFarmId="));
-      const activeFarmId = stored?.split("=")[1] || farms[0]?.id;
+      const farmToUse = activeFarmId || farms[0]?.id;
 
       const res = await fetch("/api/animals", {
         method: "POST",
@@ -148,7 +172,7 @@ export default function HerdPage() {
           name: formName.trim(),
           tagId: formTagId.trim(),
           type: formType,
-          farmId: activeFarmId,
+          farmId: farmToUse,
         }),
       });
 
@@ -162,7 +186,7 @@ export default function HerdPage() {
       setFormTagId("");
       setFormType("COW");
       setShowAddModal(false);
-      await fetchAnimals();
+      await fetchAnimals(activeFarmId);
     } catch (err: any) {
       setFormError(err.message || "Something went wrong");
     } finally {
@@ -188,11 +212,8 @@ export default function HerdPage() {
     <PageTransition>
       <div className="p-4 pt-6 pb-24 max-w-5xl mx-auto">
         {/* FMD Warning Card */}
-        <a
-          href="/herd/fmd-report"
-          className="block bg-danger/10 border border-danger/30 rounded-xl p-4 mb-4 no-underline"
-        >
-          <div className="flex items-center gap-3">
+        <div className="bg-danger/10 border border-danger/30 rounded-xl p-4 mb-4">
+          <a href="/herd/fmd-report" className="flex items-center gap-3 no-underline">
             <Bug size={20} className="text-danger shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="font-display text-sm font-bold text-danger">FMD Alert Active</p>
@@ -201,8 +222,22 @@ export default function HerdPage() {
               </p>
             </div>
             <span className="text-xs font-semibold text-danger shrink-0">Report</span>
+          </a>
+          <div className="flex gap-2 mt-3 pt-3 border-t border-danger/20">
+            <a
+              href="/herd/fmd-reports"
+              className="flex-1 text-center text-[11px] font-medium text-text-secondary bg-surface rounded-lg py-2 no-underline hover:text-white transition-colors"
+            >
+              My Reports
+            </a>
+            <a
+              href="/herd/fmd-map"
+              className="flex-1 text-center text-[11px] font-medium text-danger bg-danger/10 rounded-lg py-2 no-underline hover:bg-danger/20 transition-colors"
+            >
+              Outbreak Map
+            </a>
           </div>
-        </a>
+        </div>
 
         {/* Header */}
         <h1 className="font-bold text-2xl mb-4 text-primary">My Herd</h1>
@@ -406,13 +441,7 @@ export default function HerdPage() {
                       Farm
                     </label>
                     <div className="bg-surface-light rounded-xl px-4 py-2.5 text-sm text-muted">
-                      {(() => {
-                        const cookies = document.cookie.split(";").map((c) => c.trim());
-                        const stored = cookies.find((c) => c.startsWith("activeFarmId="));
-                        const activeFarmId = stored?.split("=")[1];
-                        const activeFarm = farms.find((f) => f.id === activeFarmId) ?? farms[0];
-                        return activeFarm?.name;
-                      })()} (active farm)
+                      {(farms.find((f) => f.id === activeFarmId) ?? farms[0])?.name} (active farm)
                     </div>
                   </div>
                 )}

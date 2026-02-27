@@ -56,11 +56,14 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { latitude, longitude, status, battery } = body;
+  const { name, tagId, type, latitude, longitude, status, battery } = body;
 
   const animal = await prisma.animal.update({
     where: { id },
     data: {
+      ...(name !== undefined && { name }),
+      ...(tagId !== undefined && { tagId }),
+      ...(type !== undefined && { type }),
       ...(latitude !== undefined && { latitude }),
       ...(longitude !== undefined && { longitude }),
       ...(status !== undefined && { status }),
