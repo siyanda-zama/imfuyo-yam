@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bug, ChevronLeft, ChevronRight, Check, MapPin, Stethoscope,
-  AlertTriangle, FileText, Send,
+  AlertTriangle, Send, Search, CheckSquare, Square, X,
 } from 'lucide-react';
 import { FMD_SYMPTOMS, FMD_SUSCEPTIBLE_TYPES } from '@/lib/provinces';
 
@@ -16,7 +16,14 @@ interface Farm {
   longitude: number;
 }
 
-const STEPS = ['Farm & Animal', 'Symptoms', 'Severity', 'Vet & Quarantine', 'Review'];
+interface Animal {
+  id: string;
+  name: string;
+  tagId: string;
+  type: string;
+}
+
+const STEPS = ['Farm & Animals', 'Symptoms', 'Severity', 'Vet & Quarantine', 'Review'];
 
 export default function FmdReportPage() {
   const router = useRouter();
@@ -25,10 +32,15 @@ export default function FmdReportPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  // Animals state
+  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [loadingAnimals, setLoadingAnimals] = useState(false);
+  const [selectedAnimalIds, setSelectedAnimalIds] = useState<Set<string>>(new Set());
+  const [animalSearch, setAnimalSearch] = useState('');
+
   // Form state
   const [farmId, setFarmId] = useState('');
   const [animalType, setAnimalType] = useState('COW');
-  const [affectedCount, setAffectedCount] = useState(1);
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [severity, setSeverity] = useState('SUSPECTED');
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -52,12 +64,65 @@ export default function FmdReportPage() {
     }
   }, []);
 
+  // Fetch animals when farm or animal type changes
+  useEffect(() => {
+    if (!farmId) {
+      setAnimals([]);
+      setSelectedAnimalIds(new Set());
+      return;
+    }
+
+    setLoadingAnimals(true);
+    setSelectedAnimalIds(new Set());
+    setAnimalSearch('');
+
+    fetch(`/api/animals?farmId=${farmId}`)
+      .then((r) => r.json())
+      .then((all: Animal[]) => {
+        setAnimals(all.filter((a) => a.type === animalType));
+      })
+      .catch(console.error)
+      .finally(() => setLoadingAnimals(false));
+  }, [farmId, animalType]);
+
+  const filteredAnimals = useMemo(() => {
+    if (!animalSearch.trim()) return animals;
+    const q = animalSearch.toLowerCase();
+    return animals.filter(
+      (a) => a.name.toLowerCase().includes(q) || a.tagId.toLowerCase().includes(q)
+    );
+  }, [animals, animalSearch]);
+
+  const toggleAnimal = (id: string) => {
+    setSelectedAnimalIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    const allFilteredIds = filteredAnimals.map((a) => a.id);
+    const allSelected = allFilteredIds.every((id) => selectedAnimalIds.has(id));
+
+    setSelectedAnimalIds((prev) => {
+      const next = new Set(prev);
+      if (allSelected) {
+        allFilteredIds.forEach((id) => next.delete(id));
+      } else {
+        allFilteredIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
   const toggleSymptom = (key: string) => {
     setSymptoms((prev) => prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key]);
   };
 
   const canProceed = () => {
-    if (step === 0) return !!farmId;
+    if (step === 0) return !!farmId && selectedAnimalIds.size > 0;
     if (step === 1) return symptoms.length > 0;
     return true;
   };
@@ -69,9 +134,17 @@ export default function FmdReportPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          farmId, animalType, affectedCount, severity, symptoms,
-          notes: notes || null, latitude, longitude, vetNotified,
-          vetName: vetName || null, quarantineStarted,
+          farmId,
+          animalType,
+          animalIds: Array.from(selectedAnimalIds),
+          severity,
+          symptoms,
+          notes: notes || null,
+          latitude,
+          longitude,
+          vetNotified,
+          vetName: vetName || null,
+          quarantineStarted,
         }),
       });
       if (res.ok) {
@@ -83,6 +156,8 @@ export default function FmdReportPage() {
       setSubmitting(false);
     }
   };
+
+  const selectedAnimals = animals.filter((a) => selectedAnimalIds.has(a.id));
 
   if (submitted) {
     return (
@@ -102,7 +177,7 @@ export default function FmdReportPage() {
           </motion.div>
           <h2 className="font-display text-xl font-bold text-white mb-2">Report Submitted</h2>
           <p className="text-sm text-text-secondary mb-6">
-            Your FMD report has been submitted successfully. Authorities will be notified.
+            {selectedAnimalIds.size} animal{selectedAnimalIds.size !== 1 ? 's' : ''} reported. Authorities will be notified.
           </p>
           <button
             onClick={() => router.push('/herd')}
@@ -146,7 +221,7 @@ export default function FmdReportPage() {
 
       <div className="max-w-lg mx-auto px-4 pt-6">
         <AnimatePresence mode="wait">
-          {/* Step 0: Farm & Animal */}
+          {/* Step 0: Farm & Animal Selection */}
           {step === 0 && (
             <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
               <div>
@@ -180,24 +255,141 @@ export default function FmdReportPage() {
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="text-xs text-text-secondary font-medium block mb-2">Number of Affected Animals</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={999}
-                  value={affectedCount}
-                  onChange={(e) => setAffectedCount(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full bg-surface border border-border/30 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/50"
-                />
-              </div>
+
+              {/* Animal Selection */}
+              {farmId && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs text-text-secondary font-medium">
+                      Select Affected Animals
+                    </label>
+                    {selectedAnimalIds.size > 0 && (
+                      <span className="text-xs text-danger font-bold">
+                        {selectedAnimalIds.size} selected
+                      </span>
+                    )}
+                  </div>
+
+                  {loadingAnimals ? (
+                    <div className="bg-surface rounded-xl border border-border/30 p-8 flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <span className="text-xs text-text-muted ml-2">Loading animals...</span>
+                    </div>
+                  ) : animals.length === 0 ? (
+                    <div className="bg-surface rounded-xl border border-border/30 p-6 text-center">
+                      <p className="text-xs text-text-muted">
+                        No {animalType.toLowerCase()}s found on this farm.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-surface rounded-xl border border-border/30 overflow-hidden">
+                      {/* Search bar */}
+                      <div className="p-2 border-b border-border/20">
+                        <div className="relative">
+                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                          <input
+                            type="text"
+                            value={animalSearch}
+                            onChange={(e) => setAnimalSearch(e.target.value)}
+                            placeholder="Search by name or tag..."
+                            className="w-full bg-background border border-border/20 rounded-lg pl-8 pr-8 py-2 text-xs text-white placeholder:text-text-muted focus:outline-none focus:border-primary/50"
+                          />
+                          {animalSearch && (
+                            <button
+                              onClick={() => setAnimalSearch('')}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted"
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Select all / deselect */}
+                      <button
+                        onClick={toggleAll}
+                        className="w-full flex items-center gap-2 px-3 py-2 border-b border-border/20 text-left hover:bg-surface-light/50 transition-colors"
+                      >
+                        {filteredAnimals.length > 0 && filteredAnimals.every((a) => selectedAnimalIds.has(a.id)) ? (
+                          <CheckSquare size={16} className="text-danger shrink-0" />
+                        ) : (
+                          <Square size={16} className="text-text-muted shrink-0" />
+                        )}
+                        <span className="text-xs text-text-secondary font-medium">
+                          {filteredAnimals.length > 0 && filteredAnimals.every((a) => selectedAnimalIds.has(a.id))
+                            ? `Deselect all (${filteredAnimals.length})`
+                            : `Select all ${animalSearch ? 'matching' : ''} (${filteredAnimals.length})`
+                          }
+                        </span>
+                      </button>
+
+                      {/* Animal list */}
+                      <div className="max-h-52 overflow-y-auto divide-y divide-border/10">
+                        {filteredAnimals.map((animal) => {
+                          const selected = selectedAnimalIds.has(animal.id);
+                          return (
+                            <button
+                              key={animal.id}
+                              onClick={() => toggleAnimal(animal.id)}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                                selected ? 'bg-danger/5' : 'hover:bg-surface-light/30'
+                              }`}
+                            >
+                              {selected ? (
+                                <CheckSquare size={16} className="text-danger shrink-0" />
+                              ) : (
+                                <Square size={16} className="text-text-muted shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm truncate ${selected ? 'text-white font-medium' : 'text-text-secondary'}`}>
+                                  {animal.name}
+                                </p>
+                                <p className="text-[10px] text-text-muted truncate">{animal.tagId}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                        {filteredAnimals.length === 0 && animalSearch && (
+                          <div className="px-3 py-4 text-center">
+                            <p className="text-xs text-text-muted">No animals matching &quot;{animalSearch}&quot;</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Selected animals summary chips */}
+                  {selectedAnimalIds.size > 0 && selectedAnimalIds.size <= 10 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {selectedAnimals.map((a) => (
+                        <span
+                          key={a.id}
+                          className="inline-flex items-center gap-1 text-[10px] bg-danger/10 text-danger px-2 py-1 rounded-full"
+                        >
+                          {a.name}
+                          <button onClick={() => toggleAnimal(a.id)} className="hover:text-white">
+                            <X size={10} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {selectedAnimalIds.size > 10 && (
+                    <p className="text-[10px] text-danger mt-2 font-medium">
+                      {selectedAnimalIds.size} animals selected
+                    </p>
+                  )}
+                </div>
+              )}
             </motion.div>
           )}
 
           {/* Step 1: Symptoms */}
           {step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-2">
-              <p className="text-xs text-text-muted mb-3">Select all observed symptoms:</p>
+              <p className="text-xs text-text-muted mb-3">
+                Select all observed symptoms (applies to {selectedAnimalIds.size} selected animal{selectedAnimalIds.size !== 1 ? 's' : ''}):
+              </p>
               {FMD_SYMPTOMS.map((symptom) => (
                 <button
                   key={symptom.key}
@@ -346,8 +538,23 @@ export default function FmdReportPage() {
                   <span className="text-white font-medium">{animalType}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-text-muted">Affected Count</span>
-                  <span className="text-white font-medium">{affectedCount}</span>
+                  <span className="text-text-muted">Affected Animals</span>
+                  <span className="text-danger font-bold">{selectedAnimalIds.size}</span>
+                </div>
+                <div className="text-xs">
+                  <span className="text-text-muted block mb-1">Selected Animals</span>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedAnimals.slice(0, 20).map((a) => (
+                      <span key={a.id} className="text-[10px] bg-surface-light text-text-secondary px-2 py-0.5 rounded-full">
+                        {a.name} ({a.tagId})
+                      </span>
+                    ))}
+                    {selectedAnimalIds.size > 20 && (
+                      <span className="text-[10px] text-text-muted px-2 py-0.5">
+                        +{selectedAnimalIds.size - 20} more
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-text-muted">Severity</span>

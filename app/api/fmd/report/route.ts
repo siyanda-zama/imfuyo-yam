@@ -9,12 +9,48 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { farmId, animalId, animalType, affectedCount, severity, symptoms, notes, latitude, longitude, vetNotified, vetName, quarantineStarted } = body;
+  const {
+    farmId, animalType, animalIds, severity, symptoms,
+    notes, latitude, longitude, vetNotified, vetName, quarantineStarted,
+    // Legacy support: single animalId + affectedCount
+    animalId, affectedCount,
+  } = body;
 
   if (!farmId || !animalType) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  const userId = session.user.id;
+  const ids: string[] = Array.isArray(animalIds) ? animalIds : [];
+
+  // If new batch format with animalIds array
+  if (ids.length > 0) {
+    const reports = await prisma.$transaction(
+      ids.map((id) =>
+        prisma.fmdReport.create({
+          data: {
+            farmId,
+            reportedById: userId,
+            animalId: id,
+            animalType,
+            affectedCount: 1,
+            severity: severity || 'SUSPECTED',
+            symptoms: JSON.stringify(symptoms || []),
+            notes: notes || null,
+            latitude: latitude || null,
+            longitude: longitude || null,
+            vetNotified: vetNotified || false,
+            vetName: vetName || null,
+            quarantineStarted: quarantineStarted || false,
+          },
+        })
+      )
+    );
+
+    return NextResponse.json({ count: reports.length, reports }, { status: 201 });
+  }
+
+  // Legacy fallback: single report
   const report = await prisma.fmdReport.create({
     data: {
       farmId,
